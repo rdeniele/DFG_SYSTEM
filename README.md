@@ -43,10 +43,10 @@ npm run dev                    # http://localhost:3000
    `supabase/migrations/20261118000000_init.sql` → **Run**.
    (Or with the Supabase CLI: `supabase link` then `supabase db push`.)
    This creates the tables, the `member_status` view, security rules, and the `avatars` photo bucket.
-3. **Turn OFF email confirmation** (members log in with phone + PIN; the app uses a hidden
-   `09XXXXXXXXX@members.gym.local` address that can't receive mail):
-   Dashboard → **Authentication** → **Sign In / Providers** → **Email** →
-   turn **Confirm email** OFF → Save. Keep the Email provider itself **enabled**.
+3. **Email confirmation: no change needed.** Members log in with phone + PIN using a hidden
+   `09XXXXXXXXX@members.gym.local` address that can't receive mail, so the app creates accounts
+   on the server as already confirmed (`app/api/register`). "Confirm email" can stay ON or OFF.
+   Keep the **Email** provider itself **enabled**.
 4. **Password rules:** Authentication → **Sign In / Providers** → Email: minimum password length
    must be **6** (the default) and leave "password requirements" at **no required characters**,
    since PINs are 6 digits.

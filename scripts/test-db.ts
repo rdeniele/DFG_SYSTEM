@@ -58,11 +58,20 @@ async function main() {
   const db = new PGlite();
   await db.exec(SUPABASE_STUB);
 
+  // Someone registered BEFORE the migration ran (auth user, no profile yet)
+  await db.exec(`insert into auth.users (id, email, raw_user_meta_data) values
+    ('00000000-0000-0000-0000-0000000000aa', '09179999999@members.gym.local', '{"full_name":"Early Bird","phone":"09179999999"}')`);
+
   const dir = join(process.cwd(), "supabase", "migrations");
   for (const f of readdirSync(dir).filter((f) => f.endsWith(".sql")).sort()) {
     await db.exec(readFileSync(join(dir, f), "utf8"));
     console.log(`applied ${f}`);
   }
+
+  const early = await db.query<{ full_name: string }>(
+    `select full_name from public.profiles where id = '00000000-0000-0000-0000-0000000000aa'`,
+  );
+  check("backfill: early registrant gets a profile", early.rows[0]?.full_name === "Early Bird");
 
   // --- helpers -----------------------------------------------------------
   const signUp = async (name: string, phone: string) => {
@@ -205,7 +214,7 @@ async function main() {
       `select phone, status, days_left from public.member_status order by status_priority, end_date`,
     ),
   );
-  check("admin sees all members", all.rows.length === 4, `${all.rows.length} rows`);
+  check("admin sees all members", all.rows.length === 5, `${all.rows.length} rows`);
   const byPhone = Object.fromEntries(all.rows.map((r) => [r.phone, r]));
   check("status active after monthly", byPhone["09170000001"].status === "active" && byPhone["09170000001"].days_left === 29);
   check("status expired", byPhone["09170000002"].status === "expired");

@@ -87,6 +87,17 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- Backfill: accounts that registered before this migration ran get their profile now.
+insert into public.profiles (id, full_name, phone)
+select
+  u.id,
+  coalesce(nullif(trim(u.raw_user_meta_data ->> 'full_name'), ''), 'Member'),
+  coalesce(u.raw_user_meta_data ->> 'phone', split_part(u.email, '@', 1))
+from auth.users u
+where u.email like '%@members.gym.local'
+  and coalesce(u.raw_user_meta_data ->> 'phone', split_part(u.email, '@', 1)) ~ '^09[0-9]{9}$'
+on conflict do nothing;
+
 -- ---------------------------------------------------------------------
 -- Guard: members can't change their own role, is_active, or phone.
 -- (Phone is their login, so only the front desk changes it.)

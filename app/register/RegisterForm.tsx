@@ -34,20 +34,25 @@ export function RegisterForm() {
     const supabase = createClient();
     setBusy("account");
     try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      // 1) Server creates the account (already confirmed, so Supabase's
+      //    "Confirm email" setting doesn't matter).
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullName, phone: normalized, pin }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        setBusy("");
+        return setError(body.error ?? "We couldn't create your account. Please try again.");
+      }
+
+      // 2) Log in with phone + PIN as usual.
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email: phoneToAuthEmail(normalized),
         password: pin,
-        options: { data: { full_name: fullName, phone: normalized } },
       });
-      if (signUpError) throw signUpError;
-      // With email confirmation ON, Supabase returns a user with no identities for an
-      // existing email, and no session. Treat both as problems.
-      if (data.user && data.user.identities?.length === 0) {
-        throw new Error("already registered");
-      }
-      if (!data.session || !data.user) {
-        throw new Error("no-session");
-      }
+      if (signInError || !data.user) throw new Error("no-session");
 
       if (photo) {
         setBusy("photo");
