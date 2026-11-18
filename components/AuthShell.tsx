@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { THEME } from "@/lib/theme";
+import { BuiltBy } from "./BuiltBy";
 import { Logo } from "./Logo";
 
 /** Simple centered page for login/register. */
@@ -17,6 +18,7 @@ export function AuthShell({ title, children }: { title: string; children: ReactN
         <h1 className="text-3xl font-bold">{title}</h1>
         {children}
       </main>
+      <BuiltBy />
     </>
   );
 }
