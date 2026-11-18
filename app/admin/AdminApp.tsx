@@ -145,6 +145,7 @@ export default function AdminApp() {
               filter={filter}
               onFilter={setFilter}
               selectedId={selectedId}
+              myRole={myRole}
               onSelect={select}
             />
           </div>

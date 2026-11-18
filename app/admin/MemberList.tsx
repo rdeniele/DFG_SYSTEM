@@ -4,7 +4,7 @@ import { MagnifyingGlass } from "@phosphor-icons/react";
 import { StatusDot } from "@/components/Status";
 import { Avatar } from "@/components/ui";
 import { isListed, matchesSearch, sortByStatus, type MemberRow } from "@/lib/admin-data";
-import { ROLE_LABEL } from "@/lib/roles";
+import { ROLE_LABEL, visibleRole, type Role } from "@/lib/roles";
 import { formatDate } from "@/lib/dates";
 import { STATUS_META, type MemberStatus } from "@/lib/status";
 
@@ -25,6 +25,7 @@ export function MemberList({
   filter,
   onFilter,
   selectedId,
+  myRole,
   onSelect,
 }: {
   members: MemberRow[];
@@ -33,6 +34,7 @@ export function MemberList({
   filter: Filter;
   onFilter: (f: Filter) => void;
   selectedId: string | null;
+  myRole: Role | null;
   onSelect: (id: string) => void;
 }) {
   const listed = members.filter(isListed);
@@ -60,9 +62,9 @@ export function MemberList({
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1.5 truncate text-base font-semibold">
             <span className="truncate">{m.full_name}</span>
-            {m.role !== "member" && (
+            {visibleRole(m.role, myRole) !== "member" && (
               <span className="shrink-0 rounded-full bg-ink px-2 py-0.5 text-[11px] font-bold text-white">
-                {ROLE_LABEL[m.role]}
+                {ROLE_LABEL[visibleRole(m.role, myRole)]}
               </span>
             )}
           </p>

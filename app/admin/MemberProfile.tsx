@@ -14,7 +14,7 @@ import { formatPhone, isValidPin, normalizePhone } from "@/lib/phone";
 import { formatPeso, PLAN_KEYS, PLANS, planLabel, type MembershipPlan, type PlanKey } from "@/lib/plans";
 import { computeRenewal, describeStatus } from "@/lib/status";
 import { RoleControl } from "@/components/RoleControl";
-import { canManage, ROLE_LABEL, type Role } from "@/lib/roles";
+import { canManage, ROLE_LABEL, visibleRole, type Role } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/client";
 import type { Membership } from "@/lib/types";
 
@@ -160,7 +160,7 @@ export function MemberProfile({
               <ActiveToggle member={member} onChanged={onChanged} />
             </>
           )}
-          {!isMe && !manageable && (
+          {!isMe && !manageable && visibleRole(member.role, myRole) !== "member" && (
             <p className="text-center text-sm text-gray-500">
               {ROLE_LABEL[member.role]} account: only someone above them can edit it (see Team).
             </p>

@@ -7,7 +7,7 @@ import { RoleControl } from "@/components/RoleControl";
 import { Avatar, Button, ErrorBox, Spinner } from "@/components/ui";
 import { friendlyError } from "@/lib/errors";
 import { formatPhone } from "@/lib/phone";
-import { canManage, ROLE_HINT, ROLE_LABEL, ROLE_RANK, type Role } from "@/lib/roles";
+import { canManage, ROLE_HINT, ROLE_LABEL, ROLE_RANK, visibleRole, type Role } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/client";
 import { useMyRole } from "@/lib/use-my-role";
 import { ActiveToggle, PinBox } from "../MemberProfile";
@@ -81,7 +81,9 @@ export default function TeamView() {
         <Spinner className="h-8 w-8 text-brand" />
       ) : (
         <ul className="flex flex-col gap-3">
-          {rows.map((r) => {
+          {rows
+            .filter((r) => visibleRole(r.role, myRole) !== "member")
+            .map((r) => {
             const isMe = r.id === myId;
             const manageable = !isMe && canManage(myRole, r.role);
             const expanded = open === r.id;
@@ -152,7 +154,7 @@ export default function TeamView() {
       <section className="mt-2 rounded-2xl bg-gray-50 p-4 text-sm text-gray-700">
         <p className="mb-2 font-bold">Who can do what</p>
         <ul className="flex flex-col gap-1.5">
-          {(["superadmin", "owner", "admin"] as Role[]).map((role) => (
+          {((myRole === "superadmin" ? ["superadmin", "owner", "admin"] : ["owner", "admin"]) as Role[]).map((role) => (
             <li key={role}>
               <strong>{ROLE_LABEL[role]}:</strong> {ROLE_HINT[role]}
             </li>

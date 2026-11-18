@@ -27,6 +27,14 @@ export const ROLE_HINT: Record<Role, string> = {
 
 const rank = (r: string | null | undefined) => ROLE_RANK[(r as Role) ?? "member"] ?? 0;
 
+/**
+ * The super admin is invisible to everyone else (owners and co-admins see them as a
+ * regular member). Use this for anything shown on screen.
+ */
+export function visibleRole(role: Role, viewer: Role | null): Role {
+  return role === "superadmin" && viewer !== "superadmin" ? "member" : role;
+}
+
 /** Any staff role (co-admin and up) uses the front desk screens. */
 export const isStaff = (r: string | null | undefined) => rank(r) >= 1;
 
