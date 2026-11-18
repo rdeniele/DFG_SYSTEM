@@ -1,7 +1,7 @@
 -- =====================================================================
 -- Daryl Fitness Gym: initial schema
 -- Tables, status view, is_admin(), sign-up trigger, RLS, avatars bucket.
--- Run with `supabase db push`, or paste into Supabase Dashboard -> SQL Editor.
+-- Applied with `npm run db:migrate` (Prisma). Can also be pasted into Supabase SQL Editor.
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
@@ -302,3 +302,16 @@ create policy "avatars: delete own or admin"
 -- First admin (run once in SQL Editor after that person registers):
 --   update public.profiles set role = 'admin' where phone = '09XXXXXXXXX';
 -- ---------------------------------------------------------------------
+
+-- ---------------------------------------------------------------------
+-- Prisma's bookkeeping table lives in public, which Supabase exposes through
+-- its Data API. Lock it so phones can't read it. (Skipped if run by hand.)
+-- ---------------------------------------------------------------------
+do $$
+begin
+  if to_regclass('public._prisma_migrations') is not null then
+    execute 'alter table public._prisma_migrations enable row level security';
+    execute 'revoke all on public._prisma_migrations from anon, authenticated';
+  end if;
+end
+$$;

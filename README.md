@@ -30,6 +30,8 @@ npm run dev                    # http://localhost:3000
 |---|---|
 | `npm run dev` | Development server |
 | `npm run build` / `npm start` | Production build / run it |
+| `npm run db:migrate` | Applies database migrations to Supabase (needs `DATABASE_URL`) |
+| `npm run db:status` | Shows which migrations are applied |
 | `npm run seed` | Sample members, walk-ins, and an admin (**test projects only**) |
 | `npm run check:rls` | Checks the security rules on your Supabase project with the public key |
 | `npm run test:db` | Tests the SQL migration offline (in-memory Postgres, no Supabase needed) |
@@ -39,10 +41,24 @@ npm run dev                    # http://localhost:3000
 
 1. Create a project at [supabase.com](https://supabase.com). Pick the **Southeast Asia (Singapore)**
    region (closest to the Philippines).
-2. **Create the database:** Dashboard → **SQL Editor** → paste all of
-   `supabase/migrations/20261118000000_init.sql` → **Run**.
-   (Or with the Supabase CLI: `supabase link` then `supabase db push`.)
-   This creates the tables, the `member_status` view, security rules, and the `avatars` photo bucket.
+2. **Create the database (one command, with Prisma):**
+   - Supabase → **Connect** (top bar) → **Session pooler** → copy the connection string.
+   - Put it in `.env.local` as `DATABASE_URL=...`, replacing `[YOUR-PASSWORD]` with your database
+     password (Project Settings → Database → reset it if you don't know it).
+   - Run:
+
+     ```bash
+     npm run db:migrate
+     ```
+
+   This applies everything in `prisma/migrations/`: tables, the `member_status` view, security
+   rules, triggers, and the `avatars` photo bucket. Run `npm run db:status` to see what's applied.
+   (Alternative without a password: paste `prisma/migrations/20261118000000_init/migration.sql`
+   into Dashboard → SQL Editor → Run.)
+
+   > Prisma is only the migration runner. The app itself uses Supabase's client so Row Level
+   > Security protects the data; there's no Prisma Client. To change the database later, add a new
+   > folder `prisma/migrations/<timestamp>_<name>/migration.sql` and run `npm run db:migrate`.
 3. **Email confirmation: no change needed.** Members log in with phone + PIN using a hidden
    `09XXXXXXXXX@members.gym.local` address that can't receive mail, so the app creates accounts
    on the server as already confirmed (`app/api/register`). "Confirm email" can stay ON or OFF.
@@ -111,7 +127,7 @@ To remove admin access later: `update public.profiles set role = 'member' where 
   ```
 
   Prices fill in the amount box automatically (staff can still change it). If you change
-  `EXPIRING_SOON_DAYS`, also change the `3` in the `member_status` view in the migration.
+  `EXPIRING_SOON_DAYS`, also change the `3` in the `member_status` view (add a new migration that recreates the view).
 - **Name and colors:** `lib/theme.ts` (gym name, short name, tagline, colors) and the matching
   `--brand`, `--brand-dark`, `--ink` variables at the top of `app/globals.css`. Current branding
   follows the DFG logo: red `#d40111`, black `#111111`, white.
@@ -180,7 +196,7 @@ lib/
   supabase/               browser, server, proxy (session refresh + route guard), admin clients
   plans.ts  status.ts  phone.ts  dates.ts  theme.ts
 proxy.ts                  Next.js 16's name for middleware.ts: protects /me and /admin
-supabase/migrations/      database schema, view, triggers, RLS, storage
+prisma/migrations/        database schema, view, triggers, RLS, storage (plain SQL, applied by Prisma)
 scripts/                  seed, check-rls, test-db, make-icons
 public/
   sw.js  icons/  downloads/  .well-known/assetlinks.json

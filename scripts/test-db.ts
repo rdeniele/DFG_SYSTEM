@@ -62,9 +62,10 @@ async function main() {
   await db.exec(`insert into auth.users (id, email, raw_user_meta_data) values
     ('00000000-0000-0000-0000-0000000000aa', '09179999999@members.gym.local', '{"full_name":"Early Bird","phone":"09179999999"}')`);
 
-  const dir = join(process.cwd(), "supabase", "migrations");
-  for (const f of readdirSync(dir).filter((f) => f.endsWith(".sql")).sort()) {
-    await db.exec(readFileSync(join(dir, f), "utf8"));
+  const dir = join(process.cwd(), "prisma", "migrations");
+  // Same order Prisma uses: one folder per migration, each with migration.sql
+  for (const f of readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort()) {
+    await db.exec(readFileSync(join(dir, f, "migration.sql"), "utf8"));
     console.log(`applied ${f}`);
   }
 

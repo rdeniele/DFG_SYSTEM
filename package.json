@@ -10,7 +10,9 @@
     "seed": "tsx --env-file=.env.local scripts/seed.ts",
     "test:db": "tsx scripts/test-db.ts",
     "icons": "tsx scripts/make-icons.ts",
-    "check:rls": "tsx --env-file=.env.local scripts/check-rls.ts"
+    "check:rls": "tsx --env-file=.env.local scripts/check-rls.ts",
+    "db:migrate": "prisma migrate deploy",
+    "db:status": "prisma migrate status"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
@@ -29,6 +31,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
+    "prisma": "7.10.1",
     "tailwindcss": "4.3.3",
     "tsx": "^4.23.15",
     "typescript": "^5"

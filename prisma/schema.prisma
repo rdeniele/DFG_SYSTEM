@@ -1,0 +1,12 @@
+// Prisma is used ONLY to apply the SQL migrations in prisma/migrations
+// (`npm run db:migrate`). There are no models and no Prisma Client on purpose:
+// the app reads and writes through Supabase (supabase-js), so Row Level Security
+// stays the source of truth. A Prisma Client would connect as the database owner
+// and bypass RLS.
+//
+// To change the database: add a new folder prisma/migrations/<timestamp>_<name>/migration.sql
+// with plain SQL, then run `npm run db:migrate`.
+
+datasource db {
+  provider = "postgresql"
+}
