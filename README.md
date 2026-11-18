@@ -79,6 +79,7 @@ npm run dev                    # http://localhost:3000
    NEXT_PUBLIC_SUPABASE_ANON_KEY=...        # "anon" / publishable key: safe for the browser
    SUPABASE_SERVICE_ROLE_KEY=...            # "service_role" / secret key: server only, never share
    NEXT_PUBLIC_ANDROID_APP_URL=/downloads/daryl-fitness-gym.apk
+   NEXT_PUBLIC_SITE_URL=https://your-live-site   # used inside the clock-in QR
    ```
 
    The service role key is used only by the **Reset PIN** button (server-side, after checking
@@ -144,7 +145,8 @@ To remove admin access later: `update public.profiles set role = 'member' where 
    (auto-detected). No build settings to change.
 3. **Environment Variables:** add the four from `.env.local`
    (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
-   `NEXT_PUBLIC_ANDROID_APP_URL`) → **Deploy**.
+   `NEXT_PUBLIC_ANDROID_APP_URL`, `NEXT_PUBLIC_SITE_URL`) → **Deploy**. (`DATABASE_URL` is only
+   for running migrations from your computer; Vercel doesn't need it.)
 4. Put the Vercel URL in Supabase → Authentication → URL Configuration → Site URL.
 5. Optional: add your own domain in Vercel → Project → **Domains**.
 6. Open the site on a phone:
@@ -167,6 +169,20 @@ After changing `NEXT_PUBLIC_*` variables in Vercel, **redeploy** (they're baked 
 - **Status** is never stored; it's calculated from the latest entry's end date vs today in Manila:
   no membership → **PENDING**, end date passed → **EXPIRED**, 3 days or fewer left → **EXPIRING SOON**,
   otherwise **ACTIVE**. Same rule in `lib/status.ts` (`getMemberStatus()`) and the `member_status` SQL view.
+
+### QR clock in / clock out
+- Front desk → **QR** (top bar) → **Print** it for the entrance, or **Show full screen** on a
+  phone/tablet at the desk. Set `NEXT_PUBLIC_SITE_URL` in Vercel to your live address so the QR
+  always points to the real site, even when printed from another computer.
+- Members tap **Scan to clock in / out** in the app (or use the phone's camera app). First scan of
+  the day = clock in, next scan = clock out. A second scan within 1 minute is ignored.
+- Only paid-up members (active or expiring) are recorded. Pending/expired members see a red
+  "Can't clock in. Please pay at the front desk." screen, so the desk can spot it.
+- Front desk → **Attendance**: who's in the gym now, today's visits with times and durations,
+  earlier days, and a **Clock out** button for anyone who forgot.
+- If a photo of the QR gets shared (people "clocking in" from home), press **Make a new QR code**
+  and print again; old copies stop working immediately.
+- Walk-ins (no account) are still added with **+ Walk-in**.
 
 ### Security (Row Level Security)
 - Members can only read their **own** profile and history, and can only change their own
@@ -191,6 +207,9 @@ app/
   me/                     member status
   admin/                  member list + profile (split view on tablet/PC), walk-ins
   admin/summary/          today / this month / counts
+  admin/qr/               clock-in QR: print, full screen, make new code
+  admin/attendance/       who's in the gym, visits per day
+  checkin/                opened by the QR: records clock in / out
   api/admin/reset-pin/    server route for Reset PIN (admin only)
   manifest.ts, offline/   PWA manifest and offline page
 lib/

@@ -12,7 +12,8 @@ import {
   fetchWalkInsSince,
   sumAmounts,
 } from "@/lib/admin-data";
-import { manilaDateOf, monthStart, todayManila, TIMEZONE } from "@/lib/dates";
+import { manilaDateOf, manilaStartOf, monthStart, todayManila, TIMEZONE } from "@/lib/dates";
+import { createClient } from "@/lib/supabase/client";
 import { friendlyError } from "@/lib/errors";
 import { formatPeso } from "@/lib/plans";
 import { STATUS_META, type MemberStatus } from "@/lib/status";
@@ -23,15 +24,19 @@ interface Summary {
   renewalsToday: { count: number; total: number };
   month: { walkIns: number; memberships: number };
   counts: Record<MemberStatus, number>;
+  visitsToday: number;
+  insideNow: number;
 }
 
 async function loadSummary(): Promise<Summary> {
   const today = todayManila();
-  const [members, walkIns, memberships] = await Promise.all([
+  const [members, walkIns, memberships, visits] = await Promise.all([
     fetchMembers(),
     fetchWalkInsSince(monthStart(today)),
     fetchMembershipsSince(monthStart(today)),
+    createClient().from("attendance").select("clock_out").gte("clock_in", manilaStartOf(today)),
   ]);
+  if (visits.error) throw visits.error;
   const isToday = (r: { created_at: string }) => manilaDateOf(r.created_at) === today;
   const wToday = walkIns.filter(isToday);
   const mToday = memberships.filter(isToday);
@@ -43,6 +48,8 @@ async function loadSummary(): Promise<Summary> {
     renewalsToday: { count: mToday.length, total: sumAmounts(mToday) },
     month: { walkIns: sumAmounts(walkIns), memberships: sumAmounts(memberships) },
     counts,
+    visitsToday: visits.data.length,
+    insideNow: visits.data.filter((v) => !v.clock_out).length,
   };
 }
 
@@ -114,6 +121,19 @@ export default function SummaryView() {
                 small={`${data.renewalsToday.count} payment${data.renewalsToday.count === 1 ? "" : "s"}`}
               />
             </div>
+            <Link
+              href="/admin/attendance"
+              className="flex items-center justify-between rounded-2xl border-2 border-gray-200 p-4 active:bg-gray-50"
+            >
+              <div>
+                <p className="text-sm text-gray-500">Member visits (QR)</p>
+                <p className="text-2xl font-bold">{data.visitsToday}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-500">In the gym now</p>
+                <p className="text-2xl font-bold text-green-700">{data.insideNow}</p>
+              </div>
+            </Link>
             <div className="rounded-2xl bg-gray-900 p-4 text-white">
               <p className="text-sm text-gray-300">Total today</p>
               <p className="text-3xl font-bold">{formatPeso(data.walkInsToday.total + data.renewalsToday.total)}</p>

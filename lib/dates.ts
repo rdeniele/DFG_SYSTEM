@@ -68,3 +68,11 @@ export function manilaStartOf(ymd: string): string {
 export function monthStart(ymd: string): string {
   return `${ymd.slice(0, 7)}-01`;
 }
+
+/** "1 h 25 min", "45 min" */
+export function formatDuration(fromIso: string, toIso: string): string {
+  const mins = Math.max(0, Math.round((new Date(toIso).getTime() - new Date(fromIso).getTime()) / 60_000));
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return h ? `${h} h ${m} min` : `${m} min`;
+}

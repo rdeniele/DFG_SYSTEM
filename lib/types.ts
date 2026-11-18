@@ -40,3 +40,21 @@ export interface WalkIn {
   created_by: string | null;
   created_at: string;
 }
+
+export interface Attendance {
+  id: string;
+  profile_id: string;
+  clock_in: string;
+  clock_out: string | null;
+}
+
+/** What clock_scan() returns after a QR scan. */
+export interface ScanResult {
+  result: "in" | "out" | "duplicate" | "blocked" | "inactive" | "admin" | "bad_code";
+  name?: string;
+  state?: "in" | "out";
+  clock_in?: string;
+  clock_out?: string | null;
+  status?: "pending" | "active" | "expiring" | "expired";
+  end_date?: string | null;
+}

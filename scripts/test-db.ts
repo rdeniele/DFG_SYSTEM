@@ -271,6 +271,55 @@ async function main() {
     )),
   );
 
+  // --- QR attendance ----------------------------------------------------
+  const token = (await db.query<{ t: string }>(`select checkin_token as t from public.gym_settings`)).rows[0].t;
+  const scan = async (uid: string, t = token) =>
+    (await as(uid, () => db.query<{ r: { result: string } }>(`select public.clock_scan($1) as r`, [t]))).rows[0].r;
+
+  check("scan: wrong QR code rejected", (await scan(alice, "nope")).result === "bad_code");
+  check("scan: active member clocks IN", (await scan(alice)).result === "in");
+  check("scan: double scan within 1 min ignored", (await scan(alice)).result === "duplicate");
+  await db.exec(`update public.attendance set clock_in = now() - interval '90 minutes'`);
+  check("scan: second scan clocks OUT", (await scan(alice)).result === "out");
+  await db.exec(`update public.attendance set clock_in = clock_in - interval '1 minute', clock_out = now() - interval '2 minutes'`);
+  check("scan: next scan starts a new visit", (await scan(alice)).result === "in");
+  const visits = await as(alice, () => db.query(`select * from public.attendance`));
+  check("scan: member sees own 2 visits", visits.rows.length === 2, `${visits.rows.length}`);
+  // forgot to clock out yesterday → today's scan is a new clock-in, not a clock-out
+  await db.exec(`update public.attendance set clock_in = now() - interval '1 day', clock_out = null`);
+  check("scan: open visit from yesterday → new clock-in", (await scan(alice)).result === "in");
+
+  check("scan: turned-off member refused", (await scan(bob)).result === "inactive");
+  const carol = await signUp("Carol", "09170000004");
+  check("scan: pending member blocked (not recorded)", (await scan(carol)).result === "blocked");
+  check(
+    "scan: blocked scan left no row",
+    (await db.query(`select 1 from public.attendance where profile_id = $1`, [carol])).rows.length === 0,
+  );
+  check("scan: admin gets 'admin'", (await scan(admin)).result === "admin");
+  check(
+    "member cannot insert attendance directly",
+    await as(alice, () => fails(() => db.query(`insert into public.attendance (profile_id) values ($1)`, [alice]))),
+  );
+  check(
+    "member cannot read the QR code",
+    (await as(alice, () => db.query(`select * from public.gym_settings`))).rows.length === 0,
+  );
+  check(
+    "member cannot make a new QR code",
+    await as(alice, () => fails(() => db.query(`select public.rotate_checkin_token()`))),
+  );
+  check(
+    "anon cannot scan",
+    await as(null, () => fails(() => db.query(`select public.clock_scan($1)`, [token]))),
+  );
+  const newToken = (await as(admin, () => db.query<{ t: string }>(`select public.rotate_checkin_token() as t`))).rows[0].t;
+  check("admin makes new QR code", newToken !== token && newToken.length === 32);
+  await db.exec(`update public.attendance set clock_in = clock_in - interval '5 minutes'`);
+  check("old printed QR stops working", (await scan(alice, token)).result === "bad_code");
+  const adminSees = await as(admin, () => db.query(`select * from public.attendance`));
+  check("admin sees all attendance", adminSees.rows.length >= 3);
+
   console.log(failures ? `\n${failures} check(s) FAILED` : "\nAll checks passed");
   process.exit(failures ? 1 : 0);
 }

@@ -4,6 +4,8 @@ import { NextResponse, type NextRequest } from "next/server";
 const MEMBER_ONLY = ["/me"];
 const ADMIN_ONLY = ["/admin"];
 const AUTH_PAGES = ["/login", "/register"];
+/** QR clock-in link: any logged-in user; logged-out users log in first, then come back. */
+const CHECKIN = ["/checkin"];
 
 function startsWithAny(path: string, prefixes: string[]) {
   return prefixes.some((p) => path === p || path.startsWith(p + "/"));
@@ -45,13 +47,14 @@ export async function updateSession(request: NextRequest) {
   const userId = data?.claims?.sub as string | undefined;
 
   const path = request.nextUrl.pathname;
-  const needsAuth = startsWithAny(path, MEMBER_ONLY) || startsWithAny(path, ADMIN_ONLY);
+  const needsAuth =
+    startsWithAny(path, MEMBER_ONLY) || startsWithAny(path, ADMIN_ONLY) || startsWithAny(path, CHECKIN);
   const isAuthPage = startsWithAny(path, AUTH_PAGES);
 
-  const redirectTo = (to: string) => {
+  const redirectTo = (to: string, next?: string) => {
     const url = request.nextUrl.clone();
     url.pathname = to;
-    url.search = "";
+    url.search = next ? `?next=${encodeURIComponent(next)}` : "";
     const res = NextResponse.redirect(url);
     // keep any refreshed auth cookies
     response.cookies.getAll().forEach((c) => res.cookies.set(c));
@@ -59,7 +62,10 @@ export async function updateSession(request: NextRequest) {
   };
 
   if (!userId) {
-    if (needsAuth) return redirectTo("/login");
+    // After logging in, a scanned QR link continues to /checkin.
+    if (needsAuth) {
+      return redirectTo("/login", startsWithAny(path, CHECKIN) ? path + request.nextUrl.search : undefined);
+    }
     return response;
   }
 

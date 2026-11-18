@@ -75,12 +75,25 @@ async function main() {
   const up = await m.storage.from("avatars").upload(`${crypto.randomUUID()}/x.jpg`, new Blob(["x"], { type: "image/jpeg" }));
   check("member: cannot upload into another user's photo folder", !!up.error);
 
+  const qr = await m.from("gym_settings").select("checkin_token");
+  check("member: cannot read the clock-in QR code", (qr.data ?? []).length === 0);
+  const att = await m.from("attendance").insert({ profile_id: memberId }).select();
+  check("member: cannot add attendance without scanning", !!att.error);
+  const rot = await m.rpc("rotate_checkin_token");
+  check("member: cannot make a new QR code", !!rot.error);
+  const bad = await m.rpc("clock_scan", { p_token: "not-the-code" });
+  check("member: wrong QR code is rejected", bad.data?.result === "bad_code");
+  const anonScan = await anonClient.rpc("clock_scan", { p_token: "x" });
+  check("logged-out: cannot scan", !!anonScan.error);
+
   // Admin
   const [ad] = await login(ADMIN.phone, ADMIN.pin);
   const all = await ad.from("member_status").select("id, status").eq("role", "member");
   check("admin: sees all members", (all.data?.length ?? 0) > 1, `${all.data?.length} members`);
   const wa = await ad.from("walk_ins").select("id");
   check("admin: can read walk-ins", !wa.error);
+  const tok = await ad.from("gym_settings").select("checkin_token").single();
+  check("admin: can read the clock-in QR code", !!tok.data?.checkin_token);
   const adm = await ad.rpc("is_admin");
   check("admin: is_admin() is true", adm.data === true);
 

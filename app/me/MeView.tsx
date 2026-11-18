@@ -1,11 +1,12 @@
 "use client";
 
-import { ArrowClockwise, Money } from "@phosphor-icons/react";
+import { ArrowClockwise, Money, SignIn, SignOut } from "@phosphor-icons/react";
 import { useCallback, useEffect, useState } from "react";
 import { LogoutButton } from "@/components/LogoutButton";
+import { QrScanButton } from "@/components/QrScanButton";
 import { StatusCard } from "@/components/Status";
 import { Avatar, Button, ErrorBox, Spinner } from "@/components/ui";
-import { formatDate, manilaDateOf, TIMEZONE } from "@/lib/dates";
+import { formatDate, formatDuration, formatTime, manilaDateOf, TIMEZONE, todayManila } from "@/lib/dates";
 import { friendlyError } from "@/lib/errors";
 import { formatPhone } from "@/lib/phone";
 import { planLabel } from "@/lib/plans";
@@ -13,13 +14,14 @@ import { getMemberStatus } from "@/lib/status";
 import { createClient } from "@/lib/supabase/client";
 import { Logo } from "@/components/Logo";
 import { THEME } from "@/lib/theme";
-import type { Membership, MemberStatusRow } from "@/lib/types";
+import type { Attendance, Membership, MemberStatusRow } from "@/lib/types";
 
 const CACHE_KEY = "dfg:me";
 
 interface MeData {
   profile: MemberStatusRow;
   history: Pick<Membership, "id" | "plan" | "start_date" | "end_date" | "created_at">[];
+  lastVisit?: Pick<Attendance, "clock_in" | "clock_out"> | null;
   fetchedAt: string;
 }
 
@@ -69,7 +71,7 @@ export default function MeView() {
         setData(null);
       }
 
-      const [profileRes, historyRes] = await Promise.all([
+      const [profileRes, historyRes, visitRes] = await Promise.all([
         supabase.from("member_status").select("*").eq("id", userId).single(),
         supabase
           .from("memberships")
@@ -77,6 +79,13 @@ export default function MeView() {
           .eq("profile_id", userId)
           .order("created_at", { ascending: false })
           .limit(20),
+        supabase
+          .from("attendance")
+          .select("clock_in, clock_out")
+          .eq("profile_id", userId)
+          .order("clock_in", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
       ]);
       if (profileRes.error) throw profileRes.error;
       if (historyRes.error) throw historyRes.error;
@@ -84,6 +93,7 @@ export default function MeView() {
       const next: MeData = {
         profile: profileRes.data as MemberStatusRow,
         history: historyRes.data as MeData["history"],
+        lastVisit: visitRes.error ? null : (visitRes.data as MeData["lastVisit"]),
         fetchedAt: new Date().toISOString(),
       };
       setData(next);
@@ -150,6 +160,13 @@ export default function MeView() {
       {error && (
         <div role="status" className="rounded-2xl border-2 border-yellow-300 bg-yellow-50 p-3 text-base text-yellow-900">
           You&apos;re offline or the connection is slow. Showing your last saved status.
+        </div>
+      )}
+
+      {profile.is_active && (info.status === "active" || info.status === "expiring") && (
+        <div className="flex flex-col gap-2">
+          <QrScanButton />
+          <VisitLine visit={data.lastVisit} />
         </div>
       )}
 
@@ -230,5 +247,25 @@ function Shell({ children }: { children: React.ReactNode }) {
       </header>
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-5 py-6">{children}</main>
     </>
+  );
+}
+
+/** "Clocked in today at 6:05 PM" / "Last visit: Nov 17 · 1 h 20 min" */
+function VisitLine({ visit }: { visit?: Pick<Attendance, "clock_in" | "clock_out"> | null }) {
+  if (!visit) return <p className="text-center text-base text-gray-500">No visits yet. Scan when you arrive.</p>;
+  const today = manilaDateOf(visit.clock_in) === todayManila();
+  if (today && !visit.clock_out) {
+    return (
+      <p className="flex items-center justify-center gap-2 text-center text-base font-semibold text-green-800">
+        <SignIn size={20} weight="bold" aria-hidden /> Clocked in today at {formatTime(visit.clock_in)}. Scan again when you leave.
+      </p>
+    );
+  }
+  return (
+    <p className="flex items-center justify-center gap-2 text-center text-base text-gray-600">
+      <SignOut size={20} weight="bold" aria-hidden />
+      {today ? "Today" : `Last visit ${formatDate(manilaDateOf(visit.clock_in))}`}: {formatTime(visit.clock_in)}
+      {visit.clock_out ? ` – ${formatTime(visit.clock_out)} (${formatDuration(visit.clock_in, visit.clock_out)})` : " (no clock-out)"}
+    </p>
   );
 }

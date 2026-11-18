@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { ChartBar, Plus } from "@phosphor-icons/react";
+import { ChartBar, Plus, QrCode, UsersThree } from "@phosphor-icons/react";
 import Link from "next/link";
 import { Button, ErrorBox, Spinner } from "@/components/ui";
 import { fetchMembers, type MemberRow } from "@/lib/admin-data";
@@ -72,13 +72,25 @@ export default function AdminApp() {
           <Logo size={42} />
           <span className="hidden text-lg font-bold text-white sm:inline">Front desk</span>
         </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/admin/summary"
-            className="flex min-h-12 items-center rounded-xl border-2 border-white/40 px-3 text-base font-semibold text-white active:bg-white/10"
-          >
-            <ChartBar size={22} weight="bold" aria-hidden className="mr-1.5" /> Summary
-          </Link>
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* On phones these three show icons only (labels for screen readers); text from sm up */}
+          {(
+            [
+              { href: "/admin/qr", icon: QrCode, label: "QR" },
+              { href: "/admin/attendance", icon: UsersThree, label: "Attendance" },
+              { href: "/admin/summary", icon: ChartBar, label: "Summary" },
+            ] as const
+          ).map(({ href, icon: IconCmp, label }) => (
+            <Link
+              key={href}
+              href={href}
+              aria-label={label}
+              className="flex min-h-12 min-w-12 items-center justify-center rounded-xl border-2 border-white/40 px-2.5 text-base font-semibold text-white active:bg-white/10"
+            >
+              <IconCmp size={22} weight="bold" aria-hidden />
+              <span className="ml-1.5 hidden md:inline">{label}</span>
+            </Link>
+          ))}
           <button
             type="button"
             onClick={() => setWalkInOpen(true)}

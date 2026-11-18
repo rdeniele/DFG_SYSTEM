@@ -23,3 +23,30 @@ html {
 body {
   font-family: var(--font-sans);
 }
+
+/* Clock-in QR poster: print only the poster, full page */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-poster {
+    border: none !important;
+    padding: 0 !important;
+    min-height: calc(297mm - 24mm);
+    justify-content: center;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* Full-screen QR on a phone/tablet at the desk */
+.print-poster:fullscreen {
+  justify-content: center;
+  border: none;
+  border-radius: 0;
+  overflow: auto;
+}

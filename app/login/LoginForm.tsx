@@ -47,7 +47,10 @@ export function LoginForm() {
       // Don't leave the PIN in memory: Next.js may keep this page alive after we leave it.
       setPin("");
       setBusy(false);
-      router.replace(profile.role === "admin" ? "/admin" : "/me");
+      // Came from a scanned QR? Continue to the clock-in page.
+      const next = new URLSearchParams(window.location.search).get("next");
+      const safeNext = next && next.startsWith("/checkin") ? next : null;
+      router.replace(safeNext ?? (profile.role === "admin" ? "/admin" : "/me"));
       router.refresh();
     } catch (err) {
       setBusy(false);
