@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   title: THEME.gymName,
   description: THEME.tagline,
   applicationName: THEME.gymName,
-  appleWebApp: { capable: true, title: THEME.shortName, statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: THEME.shortName, statusBarStyle: "black" },
   icons: {
     icon: [{ url: "/icons/favicon-48.png", sizes: "48x48", type: "image/png" }],
     apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: THEME.brandColor,
+  themeColor: THEME.inkColor,
   width: "device-width",
   initialScale: 1,
 };

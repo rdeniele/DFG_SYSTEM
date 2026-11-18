@@ -6,7 +6,7 @@
  * member still sees it with a "Last updated" time.
  * Bump VERSION to force phones to drop old caches.
  */
-const VERSION = "v1";
+const VERSION = "v2"; // v2: new logo icons
 const PAGES = `dfg-pages-${VERSION}`;
 const STATIC = `dfg-static-${VERSION}`;
 const PRECACHE = [

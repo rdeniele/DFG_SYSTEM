@@ -10,6 +10,7 @@ import { formatPhone } from "@/lib/phone";
 import { planLabel } from "@/lib/plans";
 import { getMemberStatus } from "@/lib/status";
 import { createClient } from "@/lib/supabase/client";
+import { Logo } from "@/components/Logo";
 import { THEME } from "@/lib/theme";
 import type { Membership, MemberStatusRow } from "@/lib/types";
 
@@ -219,9 +220,14 @@ export default function MeView() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-5 py-6">
-      <p className="text-sm font-semibold uppercase tracking-wider text-brand">{THEME.gymName}</p>
-      {children}
-    </main>
+    <>
+      <header className="bg-ink">
+        <div className="mx-auto flex w-full max-w-md items-center gap-3 px-5 py-3">
+          <Logo size={40} />
+          <span className="text-lg font-bold text-white">{THEME.gymName}</span>
+        </div>
+      </header>
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-5 py-6">{children}</main>
+    </>
   );
 }

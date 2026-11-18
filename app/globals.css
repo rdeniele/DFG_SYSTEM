@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
-/* Brand colors. Keep in sync with lib/theme.ts */
+/* Brand colors (from the DFG logo). Keep in sync with lib/theme.ts */
 :root {
-  --brand: #dc2626;
-  --brand-dark: #991b1b;
+  --brand: #d40111;
+  --brand-dark: #a3000d;
+  --ink: #111111;
 }
 
 @theme inline {
   --color-brand: var(--brand);
   --color-brand-dark: var(--brand-dark);
+  --color-ink: var(--ink);
   --font-sans: var(--font-geist-sans), system-ui, sans-serif;
 }
 

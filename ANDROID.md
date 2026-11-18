@@ -53,7 +53,7 @@ Answer the questions (most defaults come from the manifest):
 | Application ID / package | `com.darylfitnessgym.app` |
 | Start URL | `/login?source=app` |
 | Display mode | `standalone` |
-| Status bar / theme color | `#dc2626` |
+| Status bar / theme color | `#111111` (black, from the logo) |
 | Splash background | `#ffffff` |
 | Icon / maskable icon | keep the URLs it suggests (`/icons/icon-512.png`, `/icons/maskable-512.png`) |
 | Notifications / location delegation | **No** |

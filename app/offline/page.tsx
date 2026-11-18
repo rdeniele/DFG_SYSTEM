@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { THEME } from "@/lib/theme";
+import { Logo } from "@/components/Logo";
 import { RetryButton } from "./RetryButton";
 
 export const metadata: Metadata = { title: "Offline" };
@@ -8,9 +9,9 @@ export const metadata: Metadata = { title: "Offline" };
 export default function OfflinePage() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-5 px-5 py-10 text-center">
-      <span aria-hidden className="text-6xl">
-        📶
-      </span>
+      <div className="rounded-full bg-ink p-2">
+        <Logo size={80} />
+      </div>
       <h1 className="text-3xl font-bold">You&apos;re offline</h1>
       <p className="text-lg text-gray-600">
         No internet right now. Connect to data or Wi-Fi, then try again.

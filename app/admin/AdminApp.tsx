@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button, ErrorBox, Spinner } from "@/components/ui";
 import { fetchMembers, type MemberRow } from "@/lib/admin-data";
 import { friendlyError } from "@/lib/errors";
-import { THEME } from "@/lib/theme";
+import { Logo } from "@/components/Logo";
 import { MemberList, type Filter } from "./MemberList";
 import { MemberProfile } from "./MemberProfile";
 import { WalkInSheet } from "./WalkInSheet";
@@ -66,17 +66,15 @@ export default function AdminApp() {
 
   return (
     <div className="flex h-dvh flex-col">
-      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-2">
+      <header className="flex shrink-0 items-center justify-between gap-3 bg-ink px-4 py-2">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-sm font-black text-white">
-            {THEME.shortName}
-          </span>
-          <span className="hidden text-lg font-bold sm:inline">Front desk</span>
+          <Logo size={42} />
+          <span className="hidden text-lg font-bold text-white sm:inline">Front desk</span>
         </div>
         <div className="flex items-center gap-2">
           <Link
             href="/admin/summary"
-            className="flex min-h-12 items-center rounded-xl border-2 border-gray-300 px-3 text-base font-semibold active:bg-gray-100"
+            className="flex min-h-12 items-center rounded-xl border-2 border-white/40 px-3 text-base font-semibold text-white active:bg-white/10"
           >
             📊 Summary
           </Link>

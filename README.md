@@ -33,7 +33,7 @@ npm run dev                    # http://localhost:3000
 | `npm run seed` | Sample members, walk-ins, and an admin (**test projects only**) |
 | `npm run check:rls` | Checks the security rules on your Supabase project with the public key |
 | `npm run test:db` | Tests the SQL migration offline (in-memory Postgres, no Supabase needed) |
-| `npm run icons` | Rebuilds all app icons from `public/icons/icon.svg` |
+| `npm run icons` | Rebuilds all app icons from `public/DFG_logo.png` |
 
 ## 2. Set up Supabase
 
@@ -112,10 +112,13 @@ To remove admin access later: `update public.profiles set role = 'member' where 
 
   Prices fill in the amount box automatically (staff can still change it). If you change
   `EXPIRING_SOON_DAYS`, also change the `3` in the `member_status` view in the migration.
-- **Name and colors:** `lib/theme.ts` (gym name, short name, tagline, colors) and the two
-  `--brand` colors at the top of `app/globals.css`.
-- **Logo / app icon:** replace `public/icons/icon.svg` (square; keep the logo in the middle 60%),
-  then `npm run icons`.
+- **Name and colors:** `lib/theme.ts` (gym name, short name, tagline, colors) and the matching
+  `--brand`, `--brand-dark`, `--ink` variables at the top of `app/globals.css`. Current branding
+  follows the DFG logo: red `#d40111`, black `#111111`, white.
+- **Logo / app icons:** the source is `public/DFG_logo.png` (white circle on black). After replacing it,
+  run `npm run icons` to rebuild every app icon and the small in-app logo (`public/icons/logo-256.png`).
+  If the new logo isn't the same circle shape, adjust `CIRCLE` in `scripts/make-icons.ts`.
+  Then bump `VERSION` in `public/sw.js` so installed apps pick up the new icons.
 
 ## 5. Deploy to Vercel
 
