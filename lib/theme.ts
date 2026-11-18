@@ -7,6 +7,8 @@ export const THEME = {
   gymName: "Daryl Fitness Gym",
   shortName: "DFG",
   tagline: "Check your membership anytime.",
+  /** Live website. Used inside the clock-in QR (NEXT_PUBLIC_SITE_URL overrides it). */
+  siteUrl: "https://darylfitnessgym.vercel.app",
   logo: "/icons/logo-256.png",
   brandColor: "#d40111", // logo red: main buttons
   brandColorDark: "#a3000d", // pressed red

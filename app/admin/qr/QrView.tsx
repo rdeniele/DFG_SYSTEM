@@ -14,7 +14,7 @@ import { THEME } from "@/lib/theme";
 /** The address inside the QR. Uses the live site address when set, so a QR printed
  *  from a laptop still points to the real website. */
 function siteOrigin() {
-  return (process.env.NEXT_PUBLIC_SITE_URL || window.location.origin).replace(/\/+$/, "");
+  return (process.env.NEXT_PUBLIC_SITE_URL || THEME.siteUrl || window.location.origin).replace(/\/+$/, "");
 }
 
 export default function QrView() {
