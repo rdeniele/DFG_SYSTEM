@@ -77,6 +77,8 @@ const MEMBERS: Seed[] = [
     history: [period("monthly", -70), period("monthly", -40), period("monthly", -10)],
   },
   { name: "Carlo Diaz", phone: "09170000015", note: "expired 40 days ago", history: [period("half_month", -40)] },
+  // For the developer's own testing: active monthly, can clock in.
+  { name: "Test Member", phone: "09170000100", note: "TEST ACCOUNT: active monthly", history: [period("monthly", 29)] },
 ];
 
 const WALK_INS_TODAY = ["Kevin Uy", "Tina Cruz", "Alvin Sy", "Mia Tan"];
