@@ -6,7 +6,9 @@ import { useEffect, useSyncExternalStore } from "react";
 import { Spinner } from "@/components/ui";
 import { detectDevice, type DeviceInfo } from "@/lib/device";
 
-const ANDROID_APP_URL = process.env.NEXT_PUBLIC_ANDROID_APP_URL ?? "";
+// The Android app download is hidden until the deal is closed. Flip to true to show it again.
+const SHOW_APP_DOWNLOAD = false;
+const ANDROID_APP_URL = SHOW_APP_DOWNLOAD ? (process.env.NEXT_PUBLIC_ANDROID_APP_URL ?? "") : "";
 
 let cached: DeviceInfo | null = null;
 const getDevice = () => (cached ??= detectDevice());
@@ -34,7 +36,7 @@ export function Landing() {
     );
   }
 
-  if (device.platform === "android") return <AndroidActions inApp={device.inAppBrowser} />;
+  if (device.platform === "android" && ANDROID_APP_URL) return <AndroidActions inApp={device.inAppBrowser} />;
   if (device.platform === "ios") return <IosActions inApp={device.inAppBrowser} />;
   return (
     <div className="flex flex-col gap-3">
@@ -44,9 +46,11 @@ export function Landing() {
       <Link href="/register" className={secondary}>
         Register (new member)
       </Link>
-      <p className="mt-2 text-center text-base text-gray-500">
-        On your phone? Open this page there to get the app.
-      </p>
+      {SHOW_APP_DOWNLOAD && device.platform === "desktop" && (
+        <p className="mt-2 text-center text-base text-gray-500">
+          On your phone? Open this page there to get the app.
+        </p>
+      )}
     </div>
   );
 }
@@ -70,30 +74,26 @@ function ContinueOnWeb() {
 function AndroidActions({ inApp }: { inApp: boolean }) {
   return (
     <div className="flex flex-col gap-4">
-      {ANDROID_APP_URL && (
-        <>
-          <a href={ANDROID_APP_URL} download className={primary}>
-            <DownloadSimple size={24} weight="bold" aria-hidden /> Download the app
-          </a>
-          {inApp && <OpenInBrowserNote browser="Chrome" />}
-          <details className="rounded-2xl bg-gray-50 p-4 text-base">
-            <summary className="cursor-pointer font-semibold">How to install</summary>
-            <ol className="mt-3 flex list-decimal flex-col gap-2 pl-5 text-gray-700">
-              <li>Tap <strong>Download the app</strong>.</li>
-              <li>When it&apos;s done, tap <strong>Open</strong> (or find it in your Downloads).</li>
-              <li>
-                If your phone asks, tap <strong>Settings</strong> and turn on <strong>Allow from this source</strong>,
-                then go back.
-              </li>
-              <li>Tap <strong>Install</strong>.</li>
-              <li>
-                If a <strong>Play Protect</strong> message appears, tap <strong>More details</strong> then{" "}
-                <strong>Install anyway</strong>. Then open the app and log in.
-              </li>
-            </ol>
-          </details>
-        </>
-      )}
+      <a href={ANDROID_APP_URL} download className={primary}>
+        <DownloadSimple size={24} weight="bold" aria-hidden /> Download the app
+      </a>
+      {inApp && <OpenInBrowserNote browser="Chrome" />}
+      <details className="rounded-2xl bg-gray-50 p-4 text-base">
+        <summary className="cursor-pointer font-semibold">How to install</summary>
+        <ol className="mt-3 flex list-decimal flex-col gap-2 pl-5 text-gray-700">
+          <li>Tap <strong>Download the app</strong>.</li>
+          <li>When it&apos;s done, tap <strong>Open</strong> (or find it in your Downloads).</li>
+          <li>
+            If your phone asks, tap <strong>Settings</strong> and turn on <strong>Allow from this source</strong>,
+            then go back.
+          </li>
+          <li>Tap <strong>Install</strong>.</li>
+          <li>
+            If a <strong>Play Protect</strong> message appears, tap <strong>More details</strong> then{" "}
+            <strong>Install anyway</strong>. Then open the app and log in.
+          </li>
+        </ol>
+      </details>
       <ContinueOnWeb />
     </div>
   );
