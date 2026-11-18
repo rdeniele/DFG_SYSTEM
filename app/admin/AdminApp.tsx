@@ -77,7 +77,7 @@ export default function AdminApp() {
           <span className="hidden text-lg font-bold text-white lg:inline">Front desk</span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Phone: QR, Attendance, Menu (Summary/Team/My membership/Log out), Walk-in.
+          {/* Phone: QR, Attendance, Walk-in, Menu (Summary/Team/My membership/Log out).
               Tablet/PC: every link in the bar (labels from lg up) + Log out. */}
           {(
             [
@@ -101,7 +101,6 @@ export default function AdminApp() {
               <span className="ml-1.5 hidden lg:inline">{label}</span>
             </Link>
           ))}
-          <AdminMenu />
           <button
             type="button"
             onClick={() => setWalkInOpen(true)}
@@ -109,6 +108,7 @@ export default function AdminApp() {
           >
             <Plus size={22} weight="bold" aria-hidden className="mr-1.5" /> Walk-in
           </button>
+          <AdminMenu />
           <LogoutButton variant="header" className="hidden min-h-12 md:flex" />
         </div>
       </header>
