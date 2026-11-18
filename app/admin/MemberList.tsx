@@ -3,7 +3,8 @@
 import { MagnifyingGlass } from "@phosphor-icons/react";
 import { StatusDot } from "@/components/Status";
 import { Avatar } from "@/components/ui";
-import { matchesSearch, sortByStatus, type MemberRow } from "@/lib/admin-data";
+import { isListed, matchesSearch, sortByStatus, type MemberRow } from "@/lib/admin-data";
+import { ROLE_LABEL } from "@/lib/roles";
 import { formatDate } from "@/lib/dates";
 import { STATUS_META, type MemberStatus } from "@/lib/status";
 
@@ -34,7 +35,8 @@ export function MemberList({
   selectedId: string | null;
   onSelect: (id: string) => void;
 }) {
-  const active = members.filter((m) => m.is_active);
+  const listed = members.filter(isListed);
+  const active = listed.filter((m) => m.is_active);
   const counts = active.reduce<Record<MemberStatus, number>>(
     (acc, m) => ((acc[m.info.status] += 1), acc),
     { pending: 0, active: 0, expiring: 0, expired: 0 },
@@ -42,7 +44,7 @@ export function MemberList({
   const found = active.filter((m) => matchesSearch(m, search));
   const pending = found.filter((m) => m.info.status === "pending"); // already newest first
   const others = found.filter((m) => m.info.status !== "pending").sort(sortByStatus);
-  const inactive = members.filter((m) => !m.is_active && matchesSearch(m, search));
+  const inactive = listed.filter((m) => !m.is_active && matchesSearch(m, search));
 
   const row = (m: MemberRow) => (
     <li key={m.id}>
@@ -56,7 +58,14 @@ export function MemberList({
       >
         <Avatar src={m.photo_url} name={m.full_name} size={44} />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-semibold">{m.full_name}</p>
+          <p className="flex items-center gap-1.5 truncate text-base font-semibold">
+            <span className="truncate">{m.full_name}</span>
+            {m.role !== "member" && (
+              <span className="shrink-0 rounded-full bg-ink px-2 py-0.5 text-[11px] font-bold text-white">
+                {ROLE_LABEL[m.role]}
+              </span>
+            )}
+          </p>
           <p className="flex items-center gap-1.5 text-sm text-gray-600">
             <StatusDot status={m.info.status} />
             <span className={STATUS_META[m.info.status].text}>{STATUS_META[m.info.status].label}</span>

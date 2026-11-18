@@ -82,7 +82,7 @@ export async function updateSession(request: NextRequest) {
     const home = staff ? "/admin" : "/me";
 
     if (startsWithAny(path, ADMIN_ONLY) && !staff) return redirectTo("/me");
-    if (startsWithAny(path, MEMBER_ONLY) && staff) return redirectTo("/admin");
+    // Staff may open /me too: owners and staff can also be gym members.
     if (isAuthPage || path === "/") return redirectTo(home);
   }
 

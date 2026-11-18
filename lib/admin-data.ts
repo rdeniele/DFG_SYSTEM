@@ -8,16 +8,19 @@ import { manilaStartOf } from "./dates";
 
 export type MemberRow = Pick<
   MemberStatusRow,
-  "id" | "full_name" | "phone" | "photo_url" | "is_active" | "created_at" | "current_plan" | "end_date"
+  "id" | "full_name" | "phone" | "photo_url" | "is_active" | "created_at" | "current_plan" | "end_date" | "role"
 > & { info: StatusInfo };
 
-const LIST_COLUMNS = "id, full_name, phone, photo_url, is_active, created_at, current_plan, end_date";
+/** Shown in the member list / counts: all members, plus staff who also have a membership.
+ *  (Staff with no membership are front desk only and live on the Team page.) */
+export const isListed = (m: Pick<MemberRow, "role" | "end_date">) => m.role === "member" || !!m.end_date;
+
+const LIST_COLUMNS = "id, full_name, phone, photo_url, is_active, created_at, current_plan, end_date, role";
 
 export async function fetchMembers(): Promise<MemberRow[]> {
   const { data, error } = await createClient()
     .from("member_status")
     .select(LIST_COLUMNS)
-    .eq("role", "member")
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []).map((r) => ({ ...(r as Omit<MemberRow, "info">), info: getMemberStatus(r.end_date) }));

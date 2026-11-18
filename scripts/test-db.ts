@@ -377,7 +377,20 @@ async function main() {
   check("can_manage: owner → super admin no", (await cm(owner, sup)) === false);
   check("can_manage: nobody → self", (await cm(owner, owner)) === false);
   check("owner removes co-admin access", !(await fails(() => setRole(owner, staff, "member"))) && (await roleOf(staff)) === "member");
-  check("owner/super admin don't clock in", (await scan(owner, newToken)).result === "admin");
+  check("owner without membership: front desk only", (await scan(owner, newToken)).result === "admin");
+  // Super admin who also trains: give them a membership → clocks in like a member
+  await as(owner, () =>
+    db.query(
+      `insert into public.memberships (profile_id, plan, start_date, end_date) values ($1,'monthly',current_date,current_date+29)`,
+      [sup],
+    ),
+  );
+  check("super admin WITH membership clocks in", (await scan(sup, newToken)).result === "in");
+  await db.query(
+    `insert into public.memberships (profile_id, plan, start_date, end_date) values ($1,'weekly',current_date-20,current_date-14)`,
+    [owner],
+  );
+  check("staff with EXPIRED membership is blocked", (await scan(owner, newToken)).result === "blocked");
 
   console.log(failures ? `\n${failures} check(s) FAILED` : "\nAll checks passed");
   process.exit(failures ? 1 : 0);

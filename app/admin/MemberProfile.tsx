@@ -14,7 +14,7 @@ import { formatPhone, isValidPin, normalizePhone } from "@/lib/phone";
 import { formatPeso, PLAN_KEYS, PLANS, planLabel, type MembershipPlan, type PlanKey } from "@/lib/plans";
 import { computeRenewal, describeStatus } from "@/lib/status";
 import { RoleControl } from "@/components/RoleControl";
-import type { Role } from "@/lib/roles";
+import { canManage, ROLE_LABEL, type Role } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/client";
 import type { Membership } from "@/lib/types";
 
@@ -38,11 +38,13 @@ function computeNew(choice: Choice, manualEnd: string, member: MemberRow, today:
 export function MemberProfile({
   member,
   myRole,
+  myId,
   onChanged,
   onBack,
 }: {
   member: MemberRow;
   myRole: Role | null;
+  myId: string | null;
   onChanged: () => Promise<void> | void;
   onBack: () => void;
 }) {
@@ -50,6 +52,8 @@ export function MemberProfile({
   const [historyError, setHistoryError] = useState("");
   const [mode, setMode] = useState<"view" | "edit" | "pin">("view");
   const router = useRouter();
+  const isMe = member.id === myId;
+  const manageable = !isMe && canManage(myRole, member.role);
 
   const loadHistory = useCallback(async () => {
     try {
@@ -143,19 +147,30 @@ export function MemberProfile({
 
       {mode === "view" && (
         <section className="flex flex-col gap-3 border-t border-gray-200 pt-5">
-          <Button variant="secondary" onClick={() => setMode("edit")}>
-            <PencilSimple size={22} weight="bold" aria-hidden /> Edit name, phone, photo
-          </Button>
-          <Button variant="secondary" onClick={() => setMode("pin")}>
-            <Key size={22} weight="bold" aria-hidden /> Reset PIN
-          </Button>
-          <ActiveToggle member={member} onChanged={onChanged} />
+          {(isMe || manageable) && (
+            <Button variant="secondary" onClick={() => setMode("edit")}>
+              <PencilSimple size={22} weight="bold" aria-hidden /> Edit name, phone, photo
+            </Button>
+          )}
+          {manageable && (
+            <>
+              <Button variant="secondary" onClick={() => setMode("pin")}>
+                <Key size={22} weight="bold" aria-hidden /> Reset PIN
+              </Button>
+              <ActiveToggle member={member} onChanged={onChanged} />
+            </>
+          )}
+          {!isMe && !manageable && (
+            <p className="text-center text-sm text-gray-500">
+              {ROLE_LABEL[member.role]} account: only someone above them can edit it (see Team).
+            </p>
+          )}
         </section>
       )}
 
       {mode === "view" && member.is_active && (
         <RoleControl
-          target={{ ...member, role: "member" }}
+          target={member}
           myRole={myRole}
           onChanged={async () => {
             // They're staff now, so they leave the member list: show them on the Team page.

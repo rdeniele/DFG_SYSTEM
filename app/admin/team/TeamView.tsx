@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, CaretDown, CaretUp, Key, ShieldCheck } from "@phosphor-icons/react";
+import { ArrowLeft, Barbell, CaretDown, CaretUp, Key, ShieldCheck } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { RoleControl } from "@/components/RoleControl";
@@ -120,6 +120,14 @@ export default function TeamView() {
                       <CaretDown size={22} weight="bold" aria-hidden />
                     ))}
                 </button>
+
+                <Link
+                  href={`/admin?m=${r.id}`}
+                  className="flex min-h-11 items-center justify-center gap-1.5 border-t border-gray-100 px-4 text-sm font-semibold text-gray-700 active:bg-gray-50"
+                >
+                  <Barbell size={18} weight="bold" aria-hidden />
+                  {isMe ? "My gym membership (renew, history)" : "Gym membership (renew, history)"}
+                </Link>
 
                 {expanded && manageable && (
                   <div className="flex flex-col gap-3 border-t border-gray-200 p-4">

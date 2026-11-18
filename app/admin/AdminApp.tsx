@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { ChartBar, Plus, QrCode, ShieldCheck, UsersThree } from "@phosphor-icons/react";
+import { ChartBar, Plus, QrCode, ShieldCheck, UserCircle, UsersThree } from "@phosphor-icons/react";
 import Link from "next/link";
 import { Button, ErrorBox, Spinner } from "@/components/ui";
 import { fetchMembers, type MemberRow } from "@/lib/admin-data";
@@ -28,7 +28,7 @@ export default function AdminApp() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [walkInOpen, setWalkInOpen] = useState(false);
-  const { role: myRole } = useMyRole();
+  const { role: myRole, myId } = useMyRole();
   const closeWalkIn = useCallback(() => setWalkInOpen(false), []);
 
   const load = useCallback(async () => {
@@ -82,6 +82,7 @@ export default function AdminApp() {
               { href: "/admin/attendance", icon: UsersThree, label: "Attendance" },
               { href: "/admin/summary", icon: ChartBar, label: "Summary" },
               { href: "/admin/team", icon: ShieldCheck, label: "Team", wideOnly: true },
+              { href: "/me", icon: UserCircle, label: "My membership", wideOnly: true },
             ] as const
           ).map(({ href, icon: IconCmp, label, ...rest }) => (
             <Link
@@ -151,7 +152,7 @@ export default function AdminApp() {
           <div className={`min-h-0 flex-1 overflow-y-auto ${selected ? "block" : "hidden md:block"}`}>
             {selected ? (
               <div className="mx-auto max-w-2xl">
-                <MemberProfile key={selected.id} member={selected} myRole={myRole} onChanged={load} onBack={back} />
+                <MemberProfile key={selected.id} member={selected} myRole={myRole} myId={myId} onChanged={load} onBack={back} />
               </div>
             ) : (
               <div className="flex h-full items-center justify-center p-10 text-center text-lg text-gray-500">

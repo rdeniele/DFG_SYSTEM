@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowClockwise, ArrowLeft, ShieldCheck } from "@phosphor-icons/react";
+import { ArrowClockwise, ArrowLeft, ShieldCheck, UserCircle } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { LogoutButton } from "@/components/LogoutButton";
@@ -8,6 +8,7 @@ import { StatusDot } from "@/components/Status";
 import { Button, ErrorBox, Spinner } from "@/components/ui";
 import {
   fetchMembers,
+  isListed,
   fetchMembershipsSince,
   fetchWalkInsSince,
   sumAmounts,
@@ -41,7 +42,7 @@ async function loadSummary(): Promise<Summary> {
   const wToday = walkIns.filter(isToday);
   const mToday = memberships.filter(isToday);
   const counts: Record<MemberStatus, number> = { pending: 0, active: 0, expiring: 0, expired: 0 };
-  for (const m of members) if (m.is_active) counts[m.info.status] += 1;
+  for (const m of members) if (m.is_active && isListed(m)) counts[m.info.status] += 1;
   return {
     today,
     walkInsToday: { count: wToday.length, total: sumAmounts(wToday) },
@@ -101,6 +102,12 @@ export default function SummaryView() {
       </div>
 
       <h1 className="text-3xl font-bold">Summary</h1>
+      <Link
+        href="/me"
+        className="flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-ink px-5 text-lg font-bold text-white active:bg-black"
+      >
+        <UserCircle size={24} weight="bold" aria-hidden /> My membership &amp; clock in
+      </Link>
       <ErrorBox>{error}</ErrorBox>
 
       {!data ? (

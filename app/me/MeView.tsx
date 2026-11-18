@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowClockwise, Money, SignIn, SignOut } from "@phosphor-icons/react";
+import { ArrowClockwise, Money, SignIn, SignOut, Storefront } from "@phosphor-icons/react";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { LogoutButton } from "@/components/LogoutButton";
 import { QrScanButton } from "@/components/QrScanButton";
@@ -10,6 +11,7 @@ import { formatDate, formatDuration, formatTime, manilaDateOf, TIMEZONE, todayMa
 import { friendlyError } from "@/lib/errors";
 import { formatPhone } from "@/lib/phone";
 import { planLabel } from "@/lib/plans";
+import { isStaff } from "@/lib/roles";
 import { getMemberStatus } from "@/lib/status";
 import { createClient } from "@/lib/supabase/client";
 import { Logo } from "@/components/Logo";
@@ -148,7 +150,7 @@ export default function MeView() {
   const info = getMemberStatus(profile.end_date);
 
   return (
-    <Shell>
+    <Shell staff={isStaff(profile.role)}>
       <header className="flex items-center gap-4">
         <Avatar src={profile.photo_url} name={profile.full_name} size={72} />
         <div className="min-w-0">
@@ -236,13 +238,21 @@ export default function MeView() {
   );
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
+function Shell({ children, staff = false }: { children: React.ReactNode; staff?: boolean }) {
   return (
     <>
       <header className="bg-ink">
         <div className="mx-auto flex w-full max-w-md items-center gap-3 px-5 py-3">
           <Logo size={40} />
-          <span className="text-lg font-bold text-white">{THEME.gymName}</span>
+          <span className="flex-1 truncate text-lg font-bold text-white">{THEME.gymName}</span>
+          {staff && (
+            <Link
+              href="/admin"
+              className="flex min-h-11 items-center gap-1.5 rounded-xl border-2 border-white/40 px-3 text-base font-semibold text-white active:bg-white/10"
+            >
+              <Storefront size={20} weight="bold" aria-hidden /> Front desk
+            </Link>
+          )}
         </div>
       </header>
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-5 py-6">{children}</main>
