@@ -12,7 +12,8 @@
     "icons": "tsx scripts/make-icons.ts",
     "check:rls": "tsx --env-file=.env.local scripts/check-rls.ts",
     "db:migrate": "prisma migrate deploy",
-    "db:status": "prisma migrate status"
+    "db:status": "prisma migrate status",
+    "seed:clean": "tsx --env-file=.env.local scripts/seed.ts --clean"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

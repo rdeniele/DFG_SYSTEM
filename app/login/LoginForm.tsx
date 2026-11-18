@@ -44,6 +44,9 @@ export function LoginForm() {
         return setError("Your account is turned off. Please talk to the front desk.");
       }
 
+      // Don't leave the PIN in memory: Next.js may keep this page alive after we leave it.
+      setPin("");
+      setBusy(false);
       router.replace(profile.role === "admin" ? "/admin" : "/me");
       router.refresh();
     } catch (err) {

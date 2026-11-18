@@ -63,6 +63,13 @@ export function RegisterForm() {
         }
       }
 
+      // Clear the form: Next.js may keep this page alive after we leave it.
+      setName("");
+      setPhone("");
+      setPin("");
+      setPin2("");
+      setPhoto(null);
+      setBusy("");
       router.replace("/me");
       router.refresh();
     } catch (err) {

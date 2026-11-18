@@ -1,13 +1,11 @@
 "use client";
 
 import { SignOut } from "@phosphor-icons/react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "./ui";
 
 export function LogoutButton({ className = "" }: { className?: string }) {
-  const router = useRouter();
   const [busy, setBusy] = useState(false);
 
   async function logout() {
@@ -16,8 +14,10 @@ export function LogoutButton({ className = "" }: { className?: string }) {
     try {
       localStorage.removeItem("dfg:me");
     } catch {}
-    router.replace("/login");
-    router.refresh();
+    // Full page load (not client navigation): Next.js keeps recently visited pages alive
+    // in memory, which would leave the last person's phone/PIN or the member list behind
+    // on a shared phone. Reloading wipes all of it.
+    window.location.replace("/login");
   }
 
   return (

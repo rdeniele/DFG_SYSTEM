@@ -33,6 +33,7 @@ npm run dev                    # http://localhost:3000
 | `npm run db:migrate` | Applies database migrations to Supabase (needs `DATABASE_URL`) |
 | `npm run db:status` | Shows which migrations are applied |
 | `npm run seed` | Sample members, walk-ins, and an admin (**test projects only**) |
+| `npm run seed:clean` | Removes all sample accounts and their data (real members untouched) |
 | `npm run check:rls` | Checks the security rules on your Supabase project with the public key |
 | `npm run test:db` | Tests the SQL migration offline (in-memory Postgres, no Supabase needed) |
 | `npm run icons` | Rebuilds all app icons from `public/DFG_logo.png` |
@@ -93,8 +94,8 @@ npm run check:rls   # should say: All security checks passed
 Admin: `09990000000` / PIN `123456`. Members: `09170000001` … `09170000015` / PIN `111111`.
 Covers every status (pending, active, expiring in 0–3 days, expired), history, and walk-ins.
 
-> Don't seed the real gym database. Use a separate Supabase project for testing, or delete
-> the sample accounts afterwards (Authentication → Users).
+> Before the gym goes live, remove the sample data with `npm run seed:clean`. It only deletes
+> the sample phone numbers (0917000000x, 0999…); real members are untouched.
 
 ## 3. Make the first admin
 

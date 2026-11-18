@@ -5,6 +5,7 @@
  *
  * Needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.local.
  * Safe to re-run: it deletes the seed accounts (by phone) first.
+ * Remove all sample data:  npm run seed:clean
  * DEV/TEST ONLY. Do not run against the live gym database.
  */
 import { createClient } from "@supabase/supabase-js";
@@ -65,7 +66,7 @@ const MEMBERS: Seed[] = [
     name: "Paolo Castillo",
     phone: "09170000011",
     note: "expiring in 2 days + history",
-    history: [period("weekly", -5), period("half_month", 2)],
+    history: [period("weekly", -13), period("half_month", 2)],
   },
   { name: "Joy Navarro", phone: "09170000012", note: "expiring in 3 days", history: [period("monthly", 3)] },
   { name: "Ben Torres", phone: "09170000013", note: "expired yesterday", history: [period("weekly", -1)] },
@@ -105,8 +106,14 @@ async function createUser(name: string, phone: string, pin: string): Promise<str
 }
 
 async function main() {
+  const seedPhones = [ADMIN.phone, ...MEMBERS.map((m) => m.phone)];
+  if (process.argv.includes("--clean")) {
+    await deleteExisting(seedPhones);
+    console.log("Removed all seed accounts, their memberships, and their walk-ins. Real members are untouched.");
+    return;
+  }
   console.log(`Seeding (today in Manila: ${today})...`);
-  await deleteExisting([ADMIN.phone, ...MEMBERS.map((m) => m.phone)]);
+  await deleteExisting(seedPhones);
 
   const adminId = await createUser(ADMIN.name, ADMIN.phone, ADMIN.pin);
   const { error: roleErr } = await db.from("profiles").update({ role: "admin" }).eq("id", adminId);
