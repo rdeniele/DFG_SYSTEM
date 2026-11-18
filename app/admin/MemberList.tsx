@@ -26,6 +26,7 @@ export function MemberList({
   onFilter,
   selectedId,
   myRole,
+  inGym,
   onSelect,
 }: {
   members: MemberRow[];
@@ -35,6 +36,7 @@ export function MemberList({
   onFilter: (f: Filter) => void;
   selectedId: string | null;
   myRole: Role | null;
+  inGym: Set<string>;
   onSelect: (id: string) => void;
 }) {
   const listed = members.filter(isListed);
@@ -71,6 +73,9 @@ export function MemberList({
           <p className="flex items-center gap-1.5 text-sm text-gray-600">
             <StatusDot status={m.info.status} />
             <span className={STATUS_META[m.info.status].text}>{STATUS_META[m.info.status].label}</span>
+            {inGym.has(m.id) && (
+              <span className="ml-1 rounded-full bg-green-600 px-2 py-0.5 text-[11px] font-bold text-white">IN GYM</span>
+            )}
           </p>
         </div>
         <div className="shrink-0 text-right text-sm">

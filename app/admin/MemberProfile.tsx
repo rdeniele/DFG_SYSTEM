@@ -14,6 +14,7 @@ import { formatPhone, isValidPin, normalizePhone } from "@/lib/phone";
 import { formatPeso, PLAN_KEYS, PLANS, planLabel, type MembershipPlan, type PlanKey } from "@/lib/plans";
 import { computeRenewal, describeStatus } from "@/lib/status";
 import { RoleControl } from "@/components/RoleControl";
+import { DeskClock } from "./DeskClock";
 import { canManage, ROLE_LABEL, visibleRole, type Role } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/client";
 import type { Membership } from "@/lib/types";
@@ -103,6 +104,8 @@ export function MemberProfile({
           Plan: {planLabel(member.current_plan)} · End date: {formatDate(member.end_date)}
         </p>
       </div>
+
+      {mode === "view" && <DeskClock member={member} onChanged={onChanged} />}
 
       {mode === "view" && member.is_active && <RenewBox member={member} onSaved={afterSave} />}
 

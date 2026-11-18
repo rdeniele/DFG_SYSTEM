@@ -4,7 +4,7 @@ import { normalizePhone } from "./phone";
 import { getMemberStatus, STATUS_PRIORITY, type StatusInfo } from "./status";
 import { createClient } from "./supabase/client";
 import type { Membership, MemberStatusRow, WalkIn } from "./types";
-import { manilaStartOf } from "./dates";
+import { manilaStartOf, todayManila } from "./dates";
 
 export type MemberRow = Pick<
   MemberStatusRow,
@@ -24,6 +24,17 @@ export async function fetchMembers(): Promise<MemberRow[]> {
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []).map((r) => ({ ...(r as Omit<MemberRow, "info">), info: getMemberStatus(r.end_date) }));
+}
+
+/** IDs of members clocked in right now (today's visits with no clock-out). */
+export async function fetchInGymIds(): Promise<Set<string>> {
+  const { data, error } = await createClient()
+    .from("attendance")
+    .select("profile_id")
+    .is("clock_out", null)
+    .gte("clock_in", manilaStartOf(todayManila()));
+  if (error) throw error;
+  return new Set((data ?? []).map((r) => r.profile_id as string));
 }
 
 export async function fetchHistory(profileId: string): Promise<Membership[]> {

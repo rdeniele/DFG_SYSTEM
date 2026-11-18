@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ChartBar, Plus, QrCode, ShieldCheck, UserCircle, UsersThree } from "@phosphor-icons/react";
 import Link from "next/link";
 import { Button, ErrorBox, Spinner } from "@/components/ui";
-import { fetchMembers, type MemberRow } from "@/lib/admin-data";
+import { fetchInGymIds, fetchMembers, type MemberRow } from "@/lib/admin-data";
 import { friendlyError } from "@/lib/errors";
 import { Logo } from "@/components/Logo";
 import { LogoutButton } from "@/components/LogoutButton";
@@ -29,12 +29,15 @@ export default function AdminApp() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [walkInOpen, setWalkInOpen] = useState(false);
+  const [inGym, setInGym] = useState<Set<string>>(new Set());
   const { role: myRole, myId } = useMyRole();
   const closeWalkIn = useCallback(() => setWalkInOpen(false), []);
 
   const load = useCallback(async () => {
     try {
-      setMembers(await fetchMembers());
+      const [list, inside] = await Promise.all([fetchMembers(), fetchInGymIds().catch(() => new Set<string>())]);
+      setMembers(list);
+      setInGym(inside);
       setError("");
     } catch (err) {
       setError(friendlyError(err, "Couldn't load members."));
@@ -146,6 +149,7 @@ export default function AdminApp() {
               onFilter={setFilter}
               selectedId={selectedId}
               myRole={myRole}
+              inGym={inGym}
               onSelect={select}
             />
           </div>

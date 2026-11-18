@@ -437,6 +437,29 @@ async function main() {
     await as(null, () => fails(() => db.query(`select public.clock_action($1,'in')`, [newToken]))),
   );
 
+  // --- Front desk clocks members in/out ----------------------------------
+  const fran = await signUp("Fran", "09170000107");
+  await db.query(
+    `insert into public.memberships (profile_id, plan, start_date, end_date) values ($1,'monthly',current_date,current_date+29)`,
+    [fran],
+  );
+  const desk = async (actor: string, target: string, a: "in" | "out") =>
+    (await as(actor, () => db.query<{ r: { result: string } }>(`select public.staff_clock($1,$2) as r`, [target, a])))
+      .rows[0].r;
+  check("desk: clock member IN", (await desk(admin, fran, "in")).result === "in");
+  check("desk: IN again → already_in", (await desk(admin, fran, "in")).result === "already_in");
+  check("desk: clock member OUT", (await desk(admin, fran, "out")).result === "out");
+  check("desk: OUT again → not_in", (await desk(admin, fran, "out")).result === "not_in");
+  check("desk: pending member blocked", (await desk(admin, carol, "in")).result === "blocked");
+  check("desk: staff without membership → admin", (await desk(admin, guard, "in")).result === "admin");
+  check("desk: member cannot clock others", await fails(() => desk(fran, erin, "in")));
+  check("desk: member cannot use desk clock on self", await fails(() => desk(fran, fran, "in")));
+  const deskIn = await desk(admin, fran, "in");
+  check(
+    "desk + member's own Clock OUT share the same visit",
+    deskIn.result === "in" && (await act(fran, "out")).result === "out",
+  );
+
   console.log(failures ? `\n${failures} check(s) FAILED` : "\nAll checks passed");
   process.exit(failures ? 1 : 0);
 }
