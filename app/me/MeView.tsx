@@ -248,11 +248,13 @@ function Shell({ children, staff = false }: { children: React.ReactNode; staff?:
           {staff && (
             <Link
               href="/admin"
-              className="flex min-h-11 items-center gap-1.5 rounded-xl border-2 border-white/40 px-3 text-base font-semibold text-white active:bg-white/10"
+              aria-label="Front desk"
+              className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border-2 border-white/40 px-3 text-base font-semibold text-white active:bg-white/10"
             >
-              <Storefront size={20} weight="bold" aria-hidden /> Front desk
+              <Storefront size={20} weight="bold" aria-hidden /> <span className="hidden sm:inline">Front desk</span>
             </Link>
           )}
+          <LogoutButton variant="header" />
         </div>
       </header>
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-5 py-6">{children}</main>

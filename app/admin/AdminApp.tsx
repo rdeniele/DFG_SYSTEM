@@ -8,9 +8,11 @@ import { Button, ErrorBox, Spinner } from "@/components/ui";
 import { fetchMembers, type MemberRow } from "@/lib/admin-data";
 import { friendlyError } from "@/lib/errors";
 import { Logo } from "@/components/Logo";
+import { LogoutButton } from "@/components/LogoutButton";
 import { useMyRole } from "@/lib/use-my-role";
 import { MemberList, type Filter } from "./MemberList";
 import { MemberProfile } from "./MemberProfile";
+import { AdminMenu } from "./AdminMenu";
 import { WalkInSheet } from "./WalkInSheet";
 
 /**
@@ -72,15 +74,16 @@ export default function AdminApp() {
       <header className="flex shrink-0 items-center justify-between gap-3 bg-ink px-4 py-2">
         <div className="flex min-w-0 items-center gap-2">
           <Logo size={42} />
-          <span className="hidden text-lg font-bold text-white sm:inline">Front desk</span>
+          <span className="hidden text-lg font-bold text-white lg:inline">Front desk</span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* On phones these three show icons only (labels for screen readers); text from sm up */}
+          {/* Phone: QR, Attendance, Menu (Summary/Team/My membership/Log out), Walk-in.
+              Tablet/PC: every link in the bar (labels from lg up) + Log out. */}
           {(
             [
               { href: "/admin/qr", icon: QrCode, label: "QR" },
               { href: "/admin/attendance", icon: UsersThree, label: "Attendance" },
-              { href: "/admin/summary", icon: ChartBar, label: "Summary" },
+              { href: "/admin/summary", icon: ChartBar, label: "Summary", wideOnly: true },
               { href: "/admin/team", icon: ShieldCheck, label: "Team", wideOnly: true },
               { href: "/me", icon: UserCircle, label: "My membership", wideOnly: true },
             ] as const
@@ -89,21 +92,24 @@ export default function AdminApp() {
               key={href}
               href={href}
               aria-label={label}
+              title={label}
               className={`min-h-12 min-w-12 items-center justify-center rounded-xl border-2 border-white/40 px-2.5 text-base font-semibold text-white active:bg-white/10 ${
                 "wideOnly" in rest ? "hidden md:flex" : "flex"
               }`}
             >
               <IconCmp size={22} weight="bold" aria-hidden />
-              <span className="ml-1.5 hidden md:inline">{label}</span>
+              <span className="ml-1.5 hidden lg:inline">{label}</span>
             </Link>
           ))}
+          <AdminMenu />
           <button
             type="button"
             onClick={() => setWalkInOpen(true)}
-            className="flex min-h-12 items-center rounded-xl bg-brand px-4 text-base font-bold text-white active:bg-brand-dark"
+            className="flex min-h-12 items-center whitespace-nowrap rounded-xl bg-brand px-3.5 text-base font-bold text-white active:bg-brand-dark"
           >
             <Plus size={22} weight="bold" aria-hidden className="mr-1.5" /> Walk-in
           </button>
+          <LogoutButton variant="header" className="hidden min-h-12 md:flex" />
         </div>
       </header>
       {walkInOpen && <WalkInSheet onClose={closeWalkIn} />}
