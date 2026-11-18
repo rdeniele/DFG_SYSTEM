@@ -39,32 +39,28 @@ export const STATUS_PRIORITY: Record<MemberStatus, number> = {
 
 export const STATUS_META: Record<
   MemberStatus,
-  { label: string; emoji: string; dot: string; card: string; text: string }
+  { label: string; dot: string; card: string; text: string }
 > = {
   pending: {
     label: "PENDING",
-    emoji: "⏳",
     dot: "bg-gray-400",
     card: "bg-gray-100 border-gray-300",
     text: "text-gray-800",
   },
   active: {
     label: "ACTIVE",
-    emoji: "🟢",
     dot: "bg-green-500",
     card: "bg-green-50 border-green-400",
     text: "text-green-800",
   },
   expiring: {
     label: "EXPIRING SOON",
-    emoji: "🟡",
     dot: "bg-yellow-400",
     card: "bg-yellow-50 border-yellow-400",
     text: "text-yellow-800",
   },
   expired: {
     label: "EXPIRED",
-    emoji: "🔴",
     dot: "bg-red-500",
     card: "bg-red-50 border-red-400",
     text: "text-red-800",

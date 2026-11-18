@@ -1,5 +1,6 @@
 "use client";
 
+import { MagnifyingGlass } from "@phosphor-icons/react";
 import { StatusDot } from "@/components/Status";
 import { Avatar } from "@/components/ui";
 import { matchesSearch, sortByStatus, type MemberRow } from "@/lib/admin-data";
@@ -94,14 +95,22 @@ export function MemberList({
   return (
     <div className="flex flex-col">
       <div className="flex flex-col gap-3 border-b border-gray-200 bg-white px-4 pb-3 pt-3">
-        <input
+        <div className="relative">
+          <MagnifyingGlass
+            aria-hidden
+            size={22}
+            weight="bold"
+            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+          />
+          <input
           type="search"
           value={search}
           onChange={(e) => onSearch(e.target.value)}
-          placeholder="🔍 Search name or phone"
+          placeholder="Search name or phone"
           aria-label="Search name or phone"
-          className="min-h-12 w-full rounded-2xl border-2 border-gray-300 px-4 text-lg focus:border-brand focus:outline-none"
-        />
+          className="min-h-12 w-full rounded-2xl border-2 border-gray-300 pl-12 pr-4 text-lg focus:border-brand focus:outline-none"
+          />
+        </div>
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" role="tablist">
           {FILTERS.map((f) => {
             const n = f.key === "all" ? active.length : counts[f.key];

@@ -1,5 +1,6 @@
 "use client";
 
+import { SignOut } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -21,6 +22,7 @@ export function LogoutButton({ className = "" }: { className?: string }) {
 
   return (
     <Button variant="secondary" onClick={logout} loading={busy} className={className}>
+      {!busy && <SignOut size={22} weight="bold" aria-hidden />}
       Log out
     </Button>
   );

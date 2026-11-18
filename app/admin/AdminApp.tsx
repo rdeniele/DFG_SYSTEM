@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { ChartBar, Plus } from "@phosphor-icons/react";
 import Link from "next/link";
 import { Button, ErrorBox, Spinner } from "@/components/ui";
 import { fetchMembers, type MemberRow } from "@/lib/admin-data";
@@ -76,14 +77,14 @@ export default function AdminApp() {
             href="/admin/summary"
             className="flex min-h-12 items-center rounded-xl border-2 border-white/40 px-3 text-base font-semibold text-white active:bg-white/10"
           >
-            📊 Summary
+            <ChartBar size={22} weight="bold" aria-hidden className="mr-1.5" /> Summary
           </Link>
           <button
             type="button"
             onClick={() => setWalkInOpen(true)}
             className="flex min-h-12 items-center rounded-xl bg-brand px-4 text-base font-bold text-white active:bg-brand-dark"
           >
-            + Walk-in
+            <Plus size={22} weight="bold" aria-hidden className="mr-1.5" /> Walk-in
           </button>
         </div>
       </header>

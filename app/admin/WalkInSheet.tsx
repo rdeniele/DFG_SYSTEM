@@ -1,5 +1,6 @@
 "use client";
 
+import { CheckCircle, X } from "@phosphor-icons/react";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Button, ErrorBox, Field, Spinner, TextInput } from "@/components/ui";
 import { fetchWalkInsSince, sumAmounts } from "@/lib/admin-data";
@@ -78,9 +79,9 @@ export function WalkInSheet({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             onClick={onClose}
-            className="min-h-12 rounded-xl px-4 text-lg font-semibold text-gray-700 active:bg-gray-100"
+            className="flex min-h-12 items-center gap-1.5 rounded-xl px-4 text-lg font-semibold text-gray-700 active:bg-gray-100"
           >
-            ✕ Close
+            <X size={22} weight="bold" aria-hidden /> Close
           </button>
         </div>
 
@@ -108,8 +109,8 @@ export function WalkInSheet({ onClose }: { onClose: () => void }) {
           </Field>
           <ErrorBox>{error}</ErrorBox>
           {saved && (
-            <p role="status" className="rounded-2xl bg-green-100 p-3 text-base font-semibold text-green-900">
-              ✅ {saved}
+            <p role="status" className="flex items-center gap-2 rounded-2xl bg-green-100 p-3 text-base font-semibold text-green-900">
+              <CheckCircle size={22} weight="fill" aria-hidden className="shrink-0" /> {saved}
             </p>
           )}
           <Button type="submit" loading={saving}>

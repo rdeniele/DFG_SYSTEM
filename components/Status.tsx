@@ -1,5 +1,15 @@
+import type { Icon } from "@phosphor-icons/react";
+import { CheckCircle, HourglassMedium, WarningCircle, XCircle } from "@phosphor-icons/react/ssr";
 import { formatDate } from "@/lib/dates";
 import { describeStatus, STATUS_META, type MemberStatus, type StatusInfo } from "@/lib/status";
+
+/** Phosphor icon per status (the shape differs too, so it's never color-only). */
+export const STATUS_ICON: Record<MemberStatus, Icon> = {
+  pending: HourglassMedium,
+  active: CheckCircle,
+  expiring: WarningCircle,
+  expired: XCircle,
+};
 
 /** Small colored dot + text label. Color is never the only signal. */
 export function StatusBadge({ status, size = "md" }: { status: MemberStatus; size?: "sm" | "md" }) {
@@ -30,6 +40,7 @@ export function StatusDot({ status }: { status: MemberStatus }) {
 /** The big card on the member's screen. */
 export function StatusCard({ info }: { info: StatusInfo }) {
   const meta = STATUS_META[info.status];
+  const StatusIcon = STATUS_ICON[info.status];
   const big =
     info.status === "expiring" && info.daysLeft !== null
       ? info.daysLeft === 0
@@ -42,9 +53,7 @@ export function StatusCard({ info }: { info: StatusInfo }) {
       aria-live="polite"
       className={`flex flex-col items-center gap-2 rounded-3xl border-4 px-5 py-8 text-center ${meta.card} ${meta.text}`}
     >
-      <span aria-hidden className="text-6xl leading-none">
-        {meta.emoji}
-      </span>
+      <StatusIcon aria-hidden size={72} weight="fill" />
       <p className="mt-2 text-3xl font-black tracking-wide">{meta.label}</p>
       {big && <p className="text-2xl font-bold">{big}</p>}
       <p className="text-lg font-medium">

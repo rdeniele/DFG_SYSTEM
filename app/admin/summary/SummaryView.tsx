@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowClockwise, ArrowLeft } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { LogoutButton } from "@/components/LogoutButton";
@@ -78,9 +79,9 @@ export default function SummaryView() {
       <div className="flex items-center justify-between gap-3">
         <Link
           href="/admin"
-          className="flex min-h-12 items-center rounded-xl pr-3 text-lg font-semibold text-gray-700 active:bg-gray-100"
+          className="flex min-h-12 items-center gap-2 rounded-xl pr-3 text-lg font-semibold text-gray-700 active:bg-gray-100"
         >
-          ← Members
+          <ArrowLeft size={22} weight="bold" aria-hidden /> Members
         </Link>
         <button
           type="button"
@@ -88,7 +89,7 @@ export default function SummaryView() {
           disabled={loading}
           className="flex min-h-12 items-center gap-2 rounded-xl px-3 text-base font-semibold text-gray-700 active:bg-gray-100"
         >
-          {loading ? <Spinner className="h-4 w-4" /> : "↻"} Refresh
+          {loading ? <Spinner className="h-4 w-4" /> : <ArrowClockwise size={20} weight="bold" aria-hidden />} Refresh
         </button>
       </div>
 

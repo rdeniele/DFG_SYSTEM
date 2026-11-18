@@ -1,5 +1,6 @@
 "use client";
 
+import { Eye, EyeSlash } from "@phosphor-icons/react";
 import { useState, type ButtonHTMLAttributes, type ComponentProps, type InputHTMLAttributes, type ReactNode } from "react";
 
 type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
@@ -121,8 +122,9 @@ export function PinInput({
       <button
         type="button"
         onClick={() => setShow((s) => !s)}
-        className="absolute inset-y-0 right-2 my-auto h-11 rounded-xl px-3 text-base font-medium text-gray-600 active:bg-gray-100"
+        className="absolute inset-y-0 right-2 my-auto flex h-11 items-center gap-1.5 rounded-xl px-3 text-base font-medium text-gray-600 active:bg-gray-100"
       >
+        {show ? <EyeSlash size={20} weight="bold" aria-hidden /> : <Eye size={20} weight="bold" aria-hidden />}
         {show ? "Hide" : "Show"}
       </button>
     </div>

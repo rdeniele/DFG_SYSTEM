@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowClockwise, Money } from "@phosphor-icons/react";
 import { useCallback, useEffect, useState } from "react";
 import { LogoutButton } from "@/components/LogoutButton";
 import { StatusCard } from "@/components/Status";
@@ -173,8 +174,8 @@ export default function MeView() {
       </dl>
 
       {info.status !== "pending" && (
-        <p className="rounded-2xl bg-gray-50 p-4 text-center text-base text-gray-700">
-          💵 To renew, pay at the front desk.
+        <p className="flex items-center justify-center gap-2 rounded-2xl bg-gray-50 p-4 text-base text-gray-700">
+          <Money size={24} weight="bold" aria-hidden className="text-green-700" /> To renew, pay at the front desk.
         </p>
       )}
 
@@ -209,7 +210,7 @@ export default function MeView() {
           disabled={loading}
           className="flex min-h-12 items-center gap-2 rounded-xl px-3 font-semibold text-gray-700 active:bg-gray-100"
         >
-          {loading ? <Spinner className="h-4 w-4" /> : "↻"} Refresh
+          {loading ? <Spinner className="h-4 w-4" /> : <ArrowClockwise size={18} weight="bold" aria-hidden />} Refresh
         </button>
       </div>
 

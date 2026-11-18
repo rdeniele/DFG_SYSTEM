@@ -1,5 +1,6 @@
 "use client";
 
+import { DownloadSimple, Export, PlusSquare, WarningCircle } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useEffect, useSyncExternalStore } from "react";
 import { Spinner } from "@/components/ui";
@@ -72,7 +73,7 @@ function AndroidActions({ inApp }: { inApp: boolean }) {
       {ANDROID_APP_URL && (
         <>
           <a href={ANDROID_APP_URL} download className={primary}>
-            ⬇️ Download the app
+            <DownloadSimple size={24} weight="bold" aria-hidden /> Download the app
           </a>
           {inApp && <OpenInBrowserNote browser="Chrome" />}
           <details className="rounded-2xl bg-gray-50 p-4 text-base">
@@ -133,9 +134,12 @@ function IosActions({ inApp }: { inApp: boolean }) {
 
 function OpenInBrowserNote({ browser }: { browser: string }) {
   return (
-    <p className="rounded-2xl border-2 border-yellow-300 bg-yellow-50 p-3 text-base text-yellow-900">
-      You opened this inside another app (like Messenger). If it doesn&apos;t work, tap <strong>⋯</strong> and choose{" "}
-      <strong>Open in {browser}</strong>.
+    <p className="flex gap-2 rounded-2xl border-2 border-yellow-300 bg-yellow-50 p-3 text-base text-yellow-900">
+      <WarningCircle size={24} weight="fill" aria-hidden className="shrink-0" />
+      <span>
+        You opened this inside another app (like Messenger). If it doesn&apos;t work, tap <strong>⋯</strong> and choose{" "}
+        <strong>Open in {browser}</strong>.
+      </span>
     </p>
   );
 }
@@ -149,37 +153,10 @@ function Step({ n }: { n: number }) {
 }
 
 function ShareIcon() {
-  return (
-    <svg
-      aria-label="Share"
-      viewBox="0 0 24 24"
-      className="inline h-6 w-6 align-text-bottom text-blue-500"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 3v12" />
-      <path d="M8 7l4-4 4 4" />
-      <path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1" />
-    </svg>
-  );
+  // Phosphor "Export" matches the iOS Share symbol (box with an up arrow)
+  return <Export aria-label="Share" size={24} weight="bold" className="inline align-text-bottom text-blue-500" />;
 }
 
 function AddIcon() {
-  return (
-    <svg
-      aria-hidden
-      viewBox="0 0 24 24"
-      className="inline h-6 w-6 align-text-bottom text-gray-700"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-    >
-      <rect x="3" y="3" width="18" height="18" rx="4" />
-      <path d="M12 8v8M8 12h8" />
-    </svg>
-  );
+  return <PlusSquare aria-hidden size={24} weight="bold" className="inline align-text-bottom text-gray-700" />;
 }

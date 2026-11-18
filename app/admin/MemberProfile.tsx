@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeft, CalendarBlank, CheckCircle, Key, PencilSimple } from "@phosphor-icons/react";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { PhotoPicker } from "@/components/PhotoPicker";
 import { StatusBadge } from "@/components/Status";
@@ -69,7 +70,7 @@ export function MemberProfile({
         onClick={onBack}
         className="flex min-h-12 items-center gap-2 self-start rounded-xl pr-3 text-lg font-semibold text-gray-700 active:bg-gray-100 md:hidden"
       >
-        ← Back to list
+        <ArrowLeft size={22} weight="bold" aria-hidden /> Back to list
       </button>
 
       <header className="flex items-center gap-4">
@@ -137,10 +138,10 @@ export function MemberProfile({
       {mode === "view" && (
         <section className="flex flex-col gap-3 border-t border-gray-200 pt-5">
           <Button variant="secondary" onClick={() => setMode("edit")}>
-            ✏️ Edit name, phone, photo
+            <PencilSimple size={22} weight="bold" aria-hidden /> Edit name, phone, photo
           </Button>
           <Button variant="secondary" onClick={() => setMode("pin")}>
-            🔑 Reset PIN
+            <Key size={22} weight="bold" aria-hidden /> Reset PIN
           </Button>
           <ActiveToggle member={member} onChanged={onChanged} />
         </section>
@@ -231,7 +232,9 @@ function RenewBox({ member, onSaved }: { member: MemberRow; onSaved: () => Promi
             choice === "manual" ? "border-brand bg-red-50" : "border-gray-300 bg-white active:bg-gray-100"
           }`}
         >
-          <span className="text-lg font-bold">📅 Set date</span>
+          <span className="flex items-center gap-1.5 text-lg font-bold">
+            <CalendarBlank size={22} weight="bold" aria-hidden /> Set date
+          </span>
           <span className="text-sm text-gray-600">pick end date</span>
         </button>
       </div>
@@ -262,8 +265,8 @@ function RenewBox({ member, onSaved }: { member: MemberRow; onSaved: () => Promi
 
       <ErrorBox>{error}</ErrorBox>
       {done && (
-        <p role="status" className="rounded-2xl bg-green-100 p-4 text-base font-semibold text-green-900">
-          ✅ {done}
+        <p role="status" className="flex items-start gap-2 rounded-2xl bg-green-100 p-4 text-base font-semibold text-green-900">
+          <CheckCircle size={24} weight="fill" aria-hidden className="shrink-0" /> {done}
         </p>
       )}
 
@@ -374,8 +377,8 @@ function PinBox({ member, onDone }: { member: MemberRow; onDone: () => void }) {
   if (ok) {
     return (
       <section className="flex flex-col gap-3 rounded-3xl border-2 border-green-300 bg-green-50 p-4">
-        <p className="text-lg font-semibold text-green-900">
-          ✅ PIN changed. Tell {member.full_name.split(" ")[0]} their new PIN.
+        <p className="flex items-start gap-2 text-lg font-semibold text-green-900">
+          <CheckCircle size={26} weight="fill" aria-hidden className="shrink-0" /> PIN changed. Tell {member.full_name.split(" ")[0]} their new PIN.
         </p>
         <Button variant="secondary" onClick={onDone}>
           Done
