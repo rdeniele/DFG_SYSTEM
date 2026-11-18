@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isStaff } from "@/lib/roles";
 
 const MEMBER_ONLY = ["/me"];
 const ADMIN_ONLY = ["/admin"];
@@ -77,10 +78,11 @@ export async function updateSession(request: NextRequest) {
       .eq("id", userId)
       .maybeSingle();
 
-    const home = profile?.role === "admin" ? "/admin" : "/me";
+    const staff = isStaff(profile?.role);
+    const home = staff ? "/admin" : "/me";
 
-    if (startsWithAny(path, ADMIN_ONLY) && profile?.role !== "admin") return redirectTo("/me");
-    if (startsWithAny(path, MEMBER_ONLY) && profile?.role === "admin") return redirectTo("/admin");
+    if (startsWithAny(path, ADMIN_ONLY) && !staff) return redirectTo("/me");
+    if (startsWithAny(path, MEMBER_ONLY) && staff) return redirectTo("/admin");
     if (isAuthPage || path === "/") return redirectTo(home);
   }
 

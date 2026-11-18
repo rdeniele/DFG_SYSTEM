@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowClockwise, ArrowLeft } from "@phosphor-icons/react";
+import { ArrowClockwise, ArrowLeft, ShieldCheck } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { LogoutButton } from "@/components/LogoutButton";
@@ -169,7 +169,13 @@ export default function SummaryView() {
         </>
       )}
 
-      <div className="mt-4 border-t border-gray-200 pt-5">
+      <div className="mt-4 flex flex-col gap-3 border-t border-gray-200 pt-5">
+        <Link
+          href="/admin/team"
+          className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border-2 border-gray-300 px-5 text-lg font-semibold active:bg-gray-100"
+        >
+          <ShieldCheck size={22} weight="bold" aria-hidden /> Team &amp; access
+        </Link>
         <LogoutButton />
       </div>
     </main>

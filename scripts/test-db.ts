@@ -320,6 +320,65 @@ async function main() {
   const adminSees = await as(admin, () => db.query(`select * from public.attendance`));
   check("admin sees all attendance", adminSees.rows.length >= 3);
 
+  // --- Roles: super admin / owner / co-admin ----------------------------
+  const sup = await signUp("Super", "09170000101");
+  const owner = await signUp("Owner", "09170000102");
+  const staff = await signUp("Staff", "09170000103");
+  const dave = await signUp("Dave", "09170000104");
+  await db.exec(`update public.profiles set role = 'superadmin' where phone = '09170000101'`); // SQL editor
+  const setRole = (actor: string, target: string, role: string) =>
+    as(actor, () => db.query(`select public.set_member_role($1, $2)`, [target, role]));
+  const roleOf = async (id: string) =>
+    (await db.query<{ role: string }>(`select role from public.profiles where id = $1`, [id])).rows[0].role;
+
+  check("super admin makes an owner", !(await fails(() => setRole(sup, owner, "owner"))) && (await roleOf(owner)) === "owner");
+  check("owner makes a co-admin", !(await fails(() => setRole(owner, staff, "admin"))) && (await roleOf(staff)) === "admin");
+  check("owner cannot make another owner", await fails(() => setRole(owner, dave, "owner")));
+  check("owner cannot demote super admin", await fails(() => setRole(owner, sup, "member")));
+  check("co-admin cannot give roles", await fails(() => setRole(staff, dave, "admin")));
+  check("member cannot give roles", await fails(() => setRole(dave, dave, "admin")));
+  check("nobody changes own role", await fails(() => setRole(owner, owner, "member")));
+  check(
+    "co-admin cannot set role by direct update",
+    await as(staff, () => fails(() => db.query(`update public.profiles set role = 'owner' where id = $1`, [dave]))),
+  );
+  check(
+    "owner cannot set role by direct update either",
+    await as(owner, () => fails(() => db.query(`update public.profiles set role = 'admin' where id = $1`, [dave]))),
+  );
+  check(
+    "co-admin cannot turn off the owner",
+    await as(staff, () => fails(() => db.query(`update public.profiles set is_active = false where id = $1`, [owner]))),
+  );
+  check(
+    "co-admin cannot change the owner's phone",
+    await as(staff, () => fails(() => db.query(`update public.profiles set phone = '09171230000' where id = $1`, [owner]))),
+  );
+  check(
+    "owner cannot turn off the super admin",
+    await as(owner, () => fails(() => db.query(`update public.profiles set is_active = false where id = $1`, [sup]))),
+  );
+  check(
+    "co-admin can still renew members",
+    !(await as(staff, () =>
+      fails(() =>
+        db.query(
+          `insert into public.memberships (profile_id, plan, start_date, end_date) values ($1,'weekly',current_date,current_date+6)`,
+          [dave],
+        ),
+      ),
+    )),
+  );
+  const cm = async (actor: string, target: string) =>
+    (await as(actor, () => db.query<{ ok: boolean }>(`select public.can_manage($1) as ok`, [target]))).rows[0].ok;
+  check("can_manage: co-admin → member yes", (await cm(staff, dave)) === true);
+  check("can_manage: co-admin → owner no (no PIN reset)", (await cm(staff, owner)) === false);
+  check("can_manage: owner → co-admin yes", (await cm(owner, staff)) === true);
+  check("can_manage: owner → super admin no", (await cm(owner, sup)) === false);
+  check("can_manage: nobody → self", (await cm(owner, owner)) === false);
+  check("owner removes co-admin access", !(await fails(() => setRole(owner, staff, "member"))) && (await roleOf(staff)) === "member");
+  check("owner/super admin don't clock in", (await scan(owner, newToken)).result === "admin");
+
   console.log(failures ? `\n${failures} check(s) FAILED` : "\nAll checks passed");
   process.exit(failures ? 1 : 0);
 }

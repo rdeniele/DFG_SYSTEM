@@ -1,3 +1,4 @@
+import type { Role } from "./roles";
 import type { MembershipPlan } from "./plans";
 
 export interface Profile {
@@ -5,7 +6,7 @@ export interface Profile {
   full_name: string;
   phone: string;
   photo_url: string | null;
-  role: "member" | "admin";
+  role: Role;
   is_active: boolean;
   created_at: string;
 }

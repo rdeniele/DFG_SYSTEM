@@ -92,6 +92,20 @@ async function main() {
   check("admin: sees all members", (all.data?.length ?? 0) > 1, `${all.data?.length} members`);
   const wa = await ad.from("walk_ins").select("id");
   check("admin: can read walk-ins", !wa.error);
+  // The seeded admin is a co-admin: desk work yes, changing access no.
+  const { data: someMember } = await ad.from("profiles").select("id").eq("phone", MEMBER.phone).single();
+  const give = await ad.rpc("set_member_role", { p_profile: someMember!.id, p_role: "admin" });
+  check("co-admin: cannot give front desk access", !!give.error);
+  const direct = await ad.from("profiles").update({ role: "owner" }).eq("id", someMember!.id).select();
+  check("co-admin: cannot change roles by direct update", !!direct.error);
+  const { data: top } = await ad.from("profiles").select("id").in("role", ["owner", "superadmin"]).limit(1);
+  if (top?.[0]) {
+    const cm = await ad.rpc("can_manage", { p_profile: top[0].id });
+    check("co-admin: cannot manage owner/super admin (no PIN reset)", cm.data === false);
+    const off = await ad.from("profiles").update({ is_active: false }).eq("id", top[0].id).select();
+    check("co-admin: cannot turn off owner/super admin", !!off.error);
+  }
+
   const tok = await ad.from("gym_settings").select("checkin_token").single();
   check("admin: can read the clock-in QR code", !!tok.data?.checkin_token);
   const adm = await ad.rpc("is_admin");

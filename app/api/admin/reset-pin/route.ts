@@ -14,8 +14,11 @@ export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();
   if (!claims?.claims?.sub) return NextResponse.json({ error: "Please log in again." }, { status: 401 });
-  const { data: isAdmin } = await supabase.rpc("is_admin");
-  if (isAdmin !== true) return NextResponse.json({ error: "Admins only." }, { status: 403 });
+  // Staff only, and only for accounts ranked below you (a co-admin can't reset the owner's PIN).
+  const { data: allowed } = await supabase.rpc("can_manage", { p_profile: body.profileId });
+  if (allowed !== true) {
+    return NextResponse.json({ error: "You can't reset the PIN of this account." }, { status: 403 });
+  }
 
   const admin = createAdminClient();
   if (!admin) {

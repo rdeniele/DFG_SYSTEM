@@ -6,6 +6,7 @@ import { useState, type FormEvent } from "react";
 import { Button, ErrorBox, Field, PhoneInput, PinInput } from "@/components/ui";
 import { friendlyError } from "@/lib/errors";
 import { isValidPin, normalizePhone, phoneToAuthEmail } from "@/lib/phone";
+import { isStaff } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/client";
 
 export function LoginForm() {
@@ -50,7 +51,7 @@ export function LoginForm() {
       // Came from a scanned QR? Continue to the clock-in page.
       const next = new URLSearchParams(window.location.search).get("next");
       const safeNext = next && next.startsWith("/checkin") ? next : null;
-      router.replace(safeNext ?? (profile.role === "admin" ? "/admin" : "/me"));
+      router.replace(safeNext ?? (isStaff(profile.role) ? "/admin" : "/me"));
       router.refresh();
     } catch (err) {
       setBusy(false);

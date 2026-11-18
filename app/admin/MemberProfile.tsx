@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowLeft, CalendarBlank, CheckCircle, Key, PencilSimple } from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { PhotoPicker } from "@/components/PhotoPicker";
 import { StatusBadge } from "@/components/Status";
@@ -12,6 +13,8 @@ import { friendlyError } from "@/lib/errors";
 import { formatPhone, isValidPin, normalizePhone } from "@/lib/phone";
 import { formatPeso, PLAN_KEYS, PLANS, planLabel, type MembershipPlan, type PlanKey } from "@/lib/plans";
 import { computeRenewal, describeStatus } from "@/lib/status";
+import { RoleControl } from "@/components/RoleControl";
+import type { Role } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/client";
 import type { Membership } from "@/lib/types";
 
@@ -34,16 +37,19 @@ function computeNew(choice: Choice, manualEnd: string, member: MemberRow, today:
 
 export function MemberProfile({
   member,
+  myRole,
   onChanged,
   onBack,
 }: {
   member: MemberRow;
+  myRole: Role | null;
   onChanged: () => Promise<void> | void;
   onBack: () => void;
 }) {
   const [history, setHistory] = useState<Membership[] | null>(null);
   const [historyError, setHistoryError] = useState("");
   const [mode, setMode] = useState<"view" | "edit" | "pin">("view");
+  const router = useRouter();
 
   const loadHistory = useCallback(async () => {
     try {
@@ -145,6 +151,18 @@ export function MemberProfile({
           </Button>
           <ActiveToggle member={member} onChanged={onChanged} />
         </section>
+      )}
+
+      {mode === "view" && member.is_active && (
+        <RoleControl
+          target={{ ...member, role: "member" }}
+          myRole={myRole}
+          onChanged={async () => {
+            // They're staff now, so they leave the member list: show them on the Team page.
+            router.push("/admin/team");
+            await onChanged();
+          }}
+        />
       )}
     </div>
   );
@@ -345,7 +363,7 @@ function EditBox({ member, onDone }: { member: MemberRow; onDone: (changed: bool
 
 /* ------------------------------------------------------------------ */
 
-function PinBox({ member, onDone }: { member: MemberRow; onDone: () => void }) {
+export function PinBox({ member, onDone }: { member: { id: string; full_name: string }; onDone: () => void }) {
   const [pin, setPin] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -406,7 +424,13 @@ function PinBox({ member, onDone }: { member: MemberRow; onDone: () => void }) {
 
 /* ------------------------------------------------------------------ */
 
-function ActiveToggle({ member, onChanged }: { member: MemberRow; onChanged: () => Promise<void> | void }) {
+export function ActiveToggle({
+  member,
+  onChanged,
+}: {
+  member: { id: string; full_name: string; is_active: boolean };
+  onChanged: () => Promise<void> | void;
+}) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 

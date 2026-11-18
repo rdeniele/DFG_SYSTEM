@@ -98,21 +98,34 @@ Covers every status (pending, active, expiring in 0–3 days, expired), history,
 > Before the gym goes live, remove the sample data with `npm run seed:clean`. It only deletes
 > the sample phone numbers (0917000000x, 0999…); real members are untouched.
 
-## 3. Make the first admin
+## 3. Roles: super admin, owner, co-admin
 
-There's no admin sign-up screen on purpose.
+| Role | Can do |
+|---|---|
+| **Super admin** | Everything, plus making someone an **Owner** (or removing it) |
+| **Owner** | All front desk work, plus adding/removing **Co-admins** |
+| **Co-admin** | Front desk work only (renewals, walk-ins, attendance, QR). Can't change anyone's access |
+| **Member** | Their own membership and clock in/out |
 
-1. The owner/front-desk person **registers in the app** like a member (their own phone number).
-2. In Supabase → **SQL Editor**, run (with their number):
+Rules (enforced in the database): nobody can change their own role, and you can only edit,
+turn off, reset the PIN of, or change the access of someone **below** you. So a co-admin can't
+take over the owner's account, and an owner can't remove the super admin.
+
+**Make the first super admin** (once, no screen for this on purpose):
+1. Register in the app like a member.
+2. Supabase → SQL Editor:
 
    ```sql
-   update public.profiles set role = 'admin' where phone = '09XXXXXXXXX';
+   update public.profiles set role = 'superadmin' where phone = '09XXXXXXXXX';
    ```
 
-3. They log out and log in again. They now land on the **Front desk** screen.
+3. Log out and in again. You land on the Front desk.
 
-To remove admin access later: `update public.profiles set role = 'member' where phone = '09XXXXXXXXX';`
-(An admin can't remove their own admin role from inside the app.)
+**After that, everything is done in the app:**
+- Owner/co-admin registers like a member → open them in the **Members** list → **Front desk access**
+  → **Make Owner** (super admin only) or **Make Co-admin**.
+- **Team** page (top bar on tablet/PC, or Summary → *Team & access* on a phone): see everyone with
+  access, remove access, reset their PIN, or turn them off.
 
 ## 4. Set prices and branding
 
@@ -187,7 +200,8 @@ After changing `NEXT_PUBLIC_*` variables in Vercel, **redeploy** (they're baked 
 ### Security (Row Level Security)
 - Members can only read their **own** profile and history, and can only change their own
   name and photo, **not** their role, phone, or active status (a database trigger blocks it).
-- Only admins can add or change memberships and walk-ins, and see other members.
+- Only staff (co-admin and up) can add or change memberships and walk-ins, and see other members.
+- Roles change only through `set_member_role()` with the rank rules above.
 - Photos: anyone can view an avatar by its link; members can only upload into their own folder.
 - Sign-up always creates a **member**; nobody can sign up as an admin.
 - Run `npm run check:rls` after any database change to confirm.
@@ -209,6 +223,7 @@ app/
   admin/summary/          today / this month / counts
   admin/qr/               clock-in QR: print, full screen, make new code
   admin/attendance/       who's in the gym, visits per day
+  admin/team/             who has front desk access; give/remove access
   checkin/                opened by the QR: records clock in / out
   api/admin/reset-pin/    server route for Reset PIN (admin only)
   manifest.ts, offline/   PWA manifest and offline page
