@@ -23,37 +23,60 @@ import { createClient } from "@/lib/supabase/client";
 import { THEME } from "@/lib/theme";
 import type { ScanResult } from "@/lib/types";
 
-/** Opened from the gym QR (or the in-app scanner): records clock in / out once. */
+interface Status {
+  result: "ok" | "bad_code" | "inactive" | "admin";
+  name?: string;
+  status?: ScanResult["status"];
+  end_date?: string | null;
+  can_clock_in?: boolean;
+  open_since?: string | null;
+}
+
+/** Opened from the gym QR (or the in-app scanner): the member CHOOSES Clock IN or Clock OUT. */
 export default function CheckinView() {
   const router = useRouter();
+  const [status, setStatus] = useState<Status | null>(null);
   const [res, setRes] = useState<ScanResult | null>(null);
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState<"in" | "out" | null>(null);
   const started = useRef<string | null>(null);
+  const token = () => new URLSearchParams(window.location.search).get("t") ?? "";
 
-  async function run() {
+  async function load() {
     setError("");
     setRes(null);
-    const token = new URLSearchParams(window.location.search).get("t") ?? "";
-    if (!token) return setRes({ result: "bad_code" });
-    const { data, error: rpcError } = await createClient().rpc("clock_scan", { p_token: token });
-    if (rpcError) return setError(friendlyError(rpcError, "We couldn't record your scan. Please try again."));
+    setStatus(null);
+    if (!token()) return setRes({ result: "bad_code" });
+    const { data, error: e } = await createClient().rpc("clock_status", { p_token: token() });
+    if (e) return setError(friendlyError(e, "We couldn't check your status. Please try again."));
+    const st = data as Status;
+    if (st.result !== "ok") return setRes({ result: st.result, name: st.name });
+    if (!st.can_clock_in && !st.open_since) {
+      return setRes({ result: "blocked", name: st.name, status: st.status, end_date: st.end_date });
+    }
+    setStatus(st);
+  }
+
+  async function act(action: "in" | "out") {
+    setBusy(action);
+    setError("");
+    const { data, error: e } = await createClient().rpc("clock_action", { p_token: token(), p_action: action });
+    setBusy(null);
+    if (e) return setError(friendlyError(e, "We couldn't record it. Please try again."));
     setRes(data as ScanResult);
     if ("vibrate" in navigator) navigator.vibrate?.(80);
   }
 
   useEffect(() => {
-    // Run once per scan link (the ?t= code + when it was opened), even in React dev double-mount.
+    // Once per opened link, even in React dev double-mount.
     const key = window.location.href + "|" + performance.timeOrigin;
     if (started.current === key) return;
     started.current = key;
-    void run();
+    void load();
   }, []);
 
-  const done = (
-    <div className="mt-2 flex flex-col gap-3">
-      <Button onClick={() => window.location.replace(res?.result === "admin" ? "/admin" : "/me")}>Done</Button>
-    </div>
-  );
+  const first = (status?.name ?? res?.name ?? "").split(" ")[0];
+  const inside = !!status?.open_since;
 
   return (
     <div className="flex flex-1 flex-col">
@@ -67,21 +90,66 @@ export default function CheckinView() {
         {error ? (
           <>
             <Result tone="red" icon={WarningCircle} title="Not recorded" lines={[error]} />
-            <Button onClick={run}>Try again</Button>
+            <Button onClick={load}>Try again</Button>
             <Button variant="secondary" onClick={() => router.replace("/me")}>
               Back
             </Button>
           </>
-        ) : !res ? (
-          <div className="flex flex-col items-center gap-3 py-16 text-gray-600">
-            <Spinner className="h-12 w-12 text-brand" />
-            <p className="text-xl">Recording your scan…</p>
-          </div>
-        ) : (
+        ) : res ? (
           <>
             <ResultFor res={res} />
-            {done}
+            {res.result === "already_in" && (
+              <Button variant="secondary" onClick={() => act("out")} loading={busy === "out"}>
+                <SignOut size={24} weight="bold" aria-hidden /> Clock OUT instead
+              </Button>
+            )}
+            {res.result === "not_in" && (
+              <Button variant="secondary" onClick={() => act("in")} loading={busy === "in"}>
+                <SignIn size={24} weight="bold" aria-hidden /> Clock IN instead
+              </Button>
+            )}
+            <Button onClick={() => window.location.replace(res.result === "admin" ? "/admin" : "/me")}>Done</Button>
           </>
+        ) : status ? (
+          <>
+            <section className="flex flex-col items-center gap-1 text-center">
+              <p className="text-2xl font-bold">Hi, {first}!</p>
+              <p className={`text-lg ${inside ? "font-semibold text-green-800" : "text-gray-600"}`}>
+                {inside
+                  ? `You're clocked in since ${formatTime(status.open_since!)}`
+                  : "You're not clocked in right now"}
+              </p>
+            </section>
+            {status.can_clock_in && (
+              <button
+                type="button"
+                onClick={() => act("in")}
+                disabled={!!busy}
+                className={`flex min-h-24 items-center justify-center gap-3 rounded-3xl border-4 text-2xl font-black ${
+                  inside ? "border-gray-300 bg-white text-gray-500" : "border-green-600 bg-green-600 text-white shadow-lg"
+                }`}
+              >
+                {busy === "in" ? <Spinner className="h-7 w-7" /> : <SignIn size={36} weight="bold" aria-hidden />}
+                Clock IN
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => act("out")}
+              disabled={!!busy}
+              className={`flex min-h-24 items-center justify-center gap-3 rounded-3xl border-4 text-2xl font-black ${
+                inside ? "border-ink bg-ink text-white shadow-lg" : "border-gray-300 bg-white text-gray-500"
+              }`}
+            >
+              {busy === "out" ? <Spinner className="h-7 w-7" /> : <SignOut size={36} weight="bold" aria-hidden />}
+              Clock OUT
+            </button>
+          </>
+        ) : (
+          <div className="flex flex-col items-center gap-3 py-16 text-gray-600">
+            <Spinner className="h-12 w-12 text-brand" />
+            <p className="text-xl">Checking…</p>
+          </div>
         )}
       </main>
     </div>
@@ -135,6 +203,25 @@ function ResultFor({ res }: { res: ScanResult }) {
               ? ["You just clocked in.", "Scan again when you leave to clock out."]
               : ["You just clocked out. See you next time!"]
           }
+        />
+      );
+    case "already_in":
+      return (
+        <Result
+          tone="gray"
+          icon={ClockCounterClockwise}
+          title="Already clocked in"
+          big={formatTime(res.clock_in!)}
+          lines={["You're still clocked in from earlier today."]}
+        />
+      );
+    case "not_in":
+      return (
+        <Result
+          tone="gray"
+          icon={ClockCounterClockwise}
+          title="Not clocked in"
+          lines={["You haven't clocked in today, so there's nothing to clock out."]}
         />
       );
     case "blocked":

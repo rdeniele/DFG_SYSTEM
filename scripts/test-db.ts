@@ -392,6 +392,51 @@ async function main() {
   );
   check("staff with EXPIRED membership is blocked", (await scan(owner, newToken)).result === "blocked");
 
+  // --- Clock IN / OUT by choice ------------------------------------------
+  const erin = await signUp("Erin", "09170000105");
+  await db.query(
+    `insert into public.memberships (profile_id, plan, start_date, end_date) values ($1,'monthly',current_date,current_date+29)`,
+    [erin],
+  );
+  const act = async (uid: string, a: "in" | "out", t = newToken) =>
+    (await as(uid, () => db.query<{ r: { result: string } }>(`select public.clock_action($1,$2) as r`, [t, a]))).rows[0].r;
+  const st = async (uid: string, t = newToken) =>
+    (await as(uid, () => db.query<{ r: Record<string, unknown> }>(`select public.clock_status($1) as r`, [t]))).rows[0].r;
+
+  let s1 = await st(erin);
+  check("status: not clocked in, can clock in", s1.result === "ok" && s1.open_since === null && s1.can_clock_in === true);
+  check("choice: Clock OUT when not in → not_in", (await act(erin, "out")).result === "not_in");
+  check("choice: Clock IN → in", (await act(erin, "in")).result === "in");
+  s1 = await st(erin);
+  check("status: shows clocked in since", s1.open_since !== null);
+  check("choice: Clock IN again → already_in (no 2nd row)", (await act(erin, "in")).result === "already_in");
+  check("choice: Clock OUT right away works (no 1-minute wait)", (await act(erin, "out")).result === "out");
+  check("choice: Clock OUT again → not_in", (await act(erin, "out")).result === "not_in");
+  check("choice: Clock IN again later → new visit", (await act(erin, "in")).result === "in");
+  check(
+    "choice: visits recorded = 2",
+    (await db.query(`select 1 from public.attendance where profile_id = $1`, [erin])).rows.length === 2,
+  );
+  // yesterday's forgotten visit is not closed by today's Clock OUT
+  await db.query(`update public.attendance set clock_in = clock_in - interval '1 day', clock_out = null where profile_id = $1`, [erin]);
+  check("choice: yesterday's open visit isn't today's → Clock OUT says not_in", (await act(erin, "out")).result === "not_in");
+  check("choice: wrong QR → bad_code", (await act(erin, "in", "nope")).result === "bad_code");
+  // expired member: can't clock in, but CAN clock out if inside
+  await db.query(`delete from public.attendance where profile_id = $1`, [erin]);
+  await act(erin, "in");
+  await db.query(`update public.memberships set start_date = current_date-40, end_date = current_date-1 where profile_id = $1`, [erin]);
+  check("expired: status says can't clock in", (await st(erin)).can_clock_in === false);
+  check("expired but inside: Clock OUT still works", (await act(erin, "out")).result === "out");
+  check("expired: Clock IN blocked", (await act(erin, "in")).result === "blocked");
+  check("pending member: blocked", (await act(carol, "in")).result === "blocked");
+  const guard = await signUp("Guard", "09170000106");
+  await db.query(`update public.profiles set role = 'admin' where id = $1`, [guard]); // SQL editor
+  check("staff without membership: admin", (await act(guard, "in")).result === "admin");
+  check(
+    "anon cannot use clock_action",
+    await as(null, () => fails(() => db.query(`select public.clock_action($1,'in')`, [newToken]))),
+  );
+
   console.log(failures ? `\n${failures} check(s) FAILED` : "\nAll checks passed");
   process.exit(failures ? 1 : 0);
 }

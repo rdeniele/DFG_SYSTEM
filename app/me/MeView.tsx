@@ -282,7 +282,7 @@ function VisitLine({ visit }: { visit?: Pick<Attendance, "clock_in" | "clock_out
   if (today && !visit.clock_out) {
     return (
       <p className="flex items-center justify-center gap-2 text-center text-base font-semibold text-green-800">
-        <SignIn size={20} weight="bold" aria-hidden /> Clocked in today at {formatTime(visit.clock_in)}. Scan again when you leave.
+        <SignIn size={20} weight="bold" aria-hidden /> Clocked in today at {formatTime(visit.clock_in)}. When you leave, scan and tap Clock OUT.
       </p>
     );
   }
