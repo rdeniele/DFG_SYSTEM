@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { Spinner } from "@/components/ui";
 
-// Browser-only: it records the scan once, using the logged-in member's session.
+// Browser-only: reads the QR token and uses the logged-in member's session.
 export const CheckinClient = dynamic(() => import("./CheckinView"), {
   ssr: false,
   loading: () => (

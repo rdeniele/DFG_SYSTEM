@@ -130,13 +130,10 @@ export default function QrView() {
         )}
         <ol className="flex flex-col gap-1 text-lg text-gray-800">
           <li>
-            <strong>1.</strong> Open the {THEME.shortName} app → <strong>Scan to clock in / out</strong>
+            In the {THEME.shortName} app, tap <strong>Clock in</strong> or <strong>Clock out</strong>, then scan here.
           </li>
           <li>
-            <strong>2.</strong> Or point your phone camera here
-          </li>
-          <li>
-            <strong>3.</strong> Scan again when you leave
+            With your phone camera, scan first, then choose your action on the page that opens.
           </li>
         </ol>
       </div>

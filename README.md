@@ -187,10 +187,10 @@ After changing `NEXT_PUBLIC_*` variables in Vercel, **redeploy** (they're baked 
 - Front desk → **QR** (top bar) → **Print** it for the entrance, or **Show full screen** on a
   phone/tablet at the desk. Set `NEXT_PUBLIC_SITE_URL` in Vercel to your live address so the QR
   always points to the real site, even when printed from another computer.
-- Members tap **Scan to clock in / out** in the app (or use the phone's camera app). First scan of
-  the day = clock in, next scan = clock out. A second scan within 1 minute is ignored.
-- Only paid-up members (active or expiring) are recorded. Pending/expired members see a red
-  "Can't clock in. Please pay at the front desk." screen, so the desk can spot it.
+- Members log in, tap **Clock in**, and scan the gym QR. When they leave, they tap **Clock out**
+  and scan the same QR. Members using their phone's camera scan first and choose on the page that opens.
+- Active and expiring members can clock in. Members with an open visit can clock out if their
+  membership expires before they leave.
 - Front desk → **Attendance**: who's in the gym now, today's visits with times and durations,
   earlier days, and a **Clock out** button for anyone who forgot.
 - If a photo of the QR gets shared (people "clocking in" from home), press **Make a new QR code**

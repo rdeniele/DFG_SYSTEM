@@ -1,12 +1,11 @@
 "use client";
 
-import { ArrowClockwise, Money, QrCode, SignIn, SignOut, Storefront } from "@phosphor-icons/react";
+import { ArrowClockwise, Money, SignIn, SignOut, Storefront } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { LogoutButton } from "@/components/LogoutButton";
-import { BottomNav } from "@/components/BottomNav";
 import { HeaderMenu } from "@/components/HeaderMenu";
-import { QrScanButton, ScannerOverlay } from "@/components/QrScanButton";
+import { ClockActions } from "@/components/ClockActions";
 import { StatusCard } from "@/components/Status";
 import { Avatar, Button, ErrorBox, Spinner } from "@/components/ui";
 import { formatDate, formatDuration, formatTime, manilaDateOf, TIMEZONE, todayManila } from "@/lib/dates";
@@ -147,12 +146,16 @@ export default function MeView() {
     );
   }
 
-  const { profile, history } = data;
+  const { profile, history, lastVisit } = data;
   // Recompute from the end date every render, so a cached status is still right today.
   const info = getMemberStatus(profile.end_date);
+  const canClockIn = profile.is_active && (info.status === "active" || info.status === "expiring");
+  const canScan =
+    canClockIn ||
+    (profile.is_active && !!lastVisit && !lastVisit.clock_out && manilaDateOf(lastVisit.clock_in) === todayManila());
 
   return (
-    <Shell staff={isStaff(profile.role)} canScan={profile.is_active && (info.status === "active" || info.status === "expiring")}>
+    <Shell staff={isStaff(profile.role)} canScan={canScan}>
       <header className="flex items-center gap-4">
         <Avatar src={profile.photo_url} name={profile.full_name} size={72} />
         <div className="min-w-0">
@@ -167,10 +170,10 @@ export default function MeView() {
         </div>
       )}
 
-      {profile.is_active && (info.status === "active" || info.status === "expiring") && (
+      {canScan && (
         <div className="flex flex-col gap-2">
-          <QrScanButton className="hidden md:flex" />
-          <VisitLine visit={data.lastVisit} />
+          <ClockActions canClockIn={canClockIn} onDone={load} />
+          <VisitLine visit={lastVisit} />
         </div>
       )}
 
@@ -249,7 +252,6 @@ function Shell({
   staff?: boolean;
   canScan?: boolean;
 }) {
-  const [scanning, setScanning] = useState(false);
   return (
     <div className={`flex flex-1 flex-col ${canScan ? "has-bottom-nav pb-[var(--bottom-nav)]" : ""}`}>
       <header className="sticky top-0 z-30 bg-ink">
@@ -262,27 +264,18 @@ function Shell({
         </div>
       </header>
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-5 py-6">{children}</main>
-
-      {/* Phones: big Scan button in the bottom bar */}
-      {canScan && (
-        <BottomNav
-          label="Clock in"
-          items={[{ key: "scan", label: "Scan to clock in/out", icon: QrCode, center: true, onClick: () => setScanning(true) }]}
-        />
-      )}
-      {scanning && <ScannerOverlay onClose={() => setScanning(false)} />}
     </div>
   );
 }
 
 /** "Clocked in today at 6:05 PM" / "Last visit: Nov 17 · 1 h 20 min" */
 function VisitLine({ visit }: { visit?: Pick<Attendance, "clock_in" | "clock_out"> | null }) {
-  if (!visit) return <p className="text-center text-base text-gray-500">No visits yet. Scan when you arrive.</p>;
+  if (!visit) return <p className="text-center text-base text-gray-500">No visits yet.</p>;
   const today = manilaDateOf(visit.clock_in) === todayManila();
   if (today && !visit.clock_out) {
     return (
       <p className="flex items-center justify-center gap-2 text-center text-base font-semibold text-green-800">
-        <SignIn size={20} weight="bold" aria-hidden /> Clocked in today at {formatTime(visit.clock_in)}. When you leave, scan and tap Clock OUT.
+        <SignIn size={20} weight="bold" aria-hidden /> Clocked in today at {formatTime(visit.clock_in)}.
       </p>
     );
   }

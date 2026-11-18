@@ -49,11 +49,12 @@ export interface Attendance {
   clock_out: string | null;
 }
 
-/** What clock_scan() returns after a QR scan. */
+export type ClockAction = "in" | "out";
+
+/** What clock_action() returns for the selected action. */
 export interface ScanResult {
-  result: "in" | "out" | "duplicate" | "already_in" | "not_in" | "blocked" | "inactive" | "admin" | "bad_code";
+  result: "in" | "out" | "already_in" | "not_in" | "blocked" | "inactive" | "admin" | "bad_code";
   name?: string;
-  state?: "in" | "out";
   clock_in?: string;
   clock_out?: string | null;
   status?: "pending" | "active" | "expiring" | "expired";
