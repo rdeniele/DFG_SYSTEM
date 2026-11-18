@@ -1,10 +1,12 @@
 "use client";
 
-import { ArrowClockwise, Money, SignIn, SignOut, Storefront } from "@phosphor-icons/react";
+import { ArrowClockwise, Money, QrCode, SignIn, SignOut, Storefront } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { LogoutButton } from "@/components/LogoutButton";
-import { QrScanButton } from "@/components/QrScanButton";
+import { BottomNav } from "@/components/BottomNav";
+import { HeaderMenu } from "@/components/HeaderMenu";
+import { QrScanButton, ScannerOverlay } from "@/components/QrScanButton";
 import { StatusCard } from "@/components/Status";
 import { Avatar, Button, ErrorBox, Spinner } from "@/components/ui";
 import { formatDate, formatDuration, formatTime, manilaDateOf, TIMEZONE, todayManila } from "@/lib/dates";
@@ -150,7 +152,7 @@ export default function MeView() {
   const info = getMemberStatus(profile.end_date);
 
   return (
-    <Shell staff={isStaff(profile.role)}>
+    <Shell staff={isStaff(profile.role)} canScan={profile.is_active && (info.status === "active" || info.status === "expiring")}>
       <header className="flex items-center gap-4">
         <Avatar src={profile.photo_url} name={profile.full_name} size={72} />
         <div className="min-w-0">
@@ -167,7 +169,7 @@ export default function MeView() {
 
       {profile.is_active && (info.status === "active" || info.status === "expiring") && (
         <div className="flex flex-col gap-2">
-          <QrScanButton />
+          <QrScanButton className="hidden md:flex" />
           <VisitLine visit={data.lastVisit} />
         </div>
       )}
@@ -238,27 +240,38 @@ export default function MeView() {
   );
 }
 
-function Shell({ children, staff = false }: { children: React.ReactNode; staff?: boolean }) {
+function Shell({
+  children,
+  staff = false,
+  canScan = false,
+}: {
+  children: React.ReactNode;
+  staff?: boolean;
+  canScan?: boolean;
+}) {
+  const [scanning, setScanning] = useState(false);
   return (
-    <>
-      <header className="bg-ink">
-        <div className="mx-auto flex w-full max-w-md items-center gap-3 px-5 py-3">
-          <Logo size={40} />
-          <span className="flex-1 truncate text-lg font-bold text-white">{THEME.gymName}</span>
-          {staff && (
-            <Link
-              href="/admin"
-              aria-label="Front desk"
-              className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border-2 border-white/40 px-3 text-base font-semibold text-white active:bg-white/10"
-            >
-              <Storefront size={20} weight="bold" aria-hidden /> <span className="hidden sm:inline">Front desk</span>
-            </Link>
-          )}
-          <LogoutButton variant="header" />
+    <div className={`flex flex-1 flex-col ${canScan ? "has-bottom-nav pb-[var(--bottom-nav)]" : ""}`}>
+      <header className="sticky top-0 z-30 bg-ink">
+        <div className="mx-auto flex w-full max-w-md items-center gap-2 px-3 py-2">
+          <Link href="/" aria-label="Home" className="flex min-w-0 flex-1 items-center gap-2 rounded-xl pr-2 active:bg-white/10">
+            <Logo size={42} />
+            <span className="truncate text-lg font-bold text-white">{THEME.gymName}</span>
+          </Link>
+          <HeaderMenu links={staff ? [{ href: "/admin", icon: Storefront, label: "Front desk" }] : []} />
         </div>
       </header>
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-5 py-6">{children}</main>
-    </>
+
+      {/* Phones: big Scan button in the bottom bar */}
+      {canScan && (
+        <BottomNav
+          label="Clock in"
+          items={[{ key: "scan", label: "Scan to clock in/out", icon: QrCode, center: true, onClick: () => setScanning(true) }]}
+        />
+      )}
+      {scanning && <ScannerOverlay onClose={() => setScanning(false)} />}
+    </div>
   );
 }
 

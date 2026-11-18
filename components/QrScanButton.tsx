@@ -1,7 +1,6 @@
 "use client";
 
 import { CameraSlash, QrCode, X } from "@phosphor-icons/react";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Button, Spinner } from "./ui";
 
@@ -16,14 +15,14 @@ function checkinPathFrom(text: string): string | null {
 }
 
 /** Big "Scan to clock in / out" button that opens the camera inside the app. */
-export function QrScanButton() {
+export function QrScanButton({ className = "" }: { className?: string }) {
   const [open, setOpen] = useState(false);
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex min-h-20 w-full items-center justify-center gap-3 rounded-3xl bg-ink px-5 text-xl font-bold text-white shadow-lg active:bg-black"
+        className={`flex min-h-20 w-full items-center justify-center gap-3 rounded-3xl bg-ink px-5 text-xl font-bold text-white shadow-lg active:bg-black ${className}`}
       >
         <QrCode size={36} weight="bold" aria-hidden />
         Scan to clock in / out
@@ -33,8 +32,7 @@ export function QrScanButton() {
   );
 }
 
-function ScannerOverlay({ onClose }: { onClose: () => void }) {
-  const router = useRouter();
+export function ScannerOverlay({ onClose }: { onClose: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [state, setState] = useState<"starting" | "scanning" | "denied" | "nocamera">("starting");
   const [hint, setHint] = useState("");
@@ -60,7 +58,10 @@ function ScannerOverlay({ onClose }: { onClose: () => void }) {
           handled.current = true;
           navigator.vibrate?.(60);
           scanner?.stop();
-          router.push(path);
+          // Full page load, NOT client navigation: Next.js keeps the last /checkin page alive
+          // in memory, so a second in-app scan (the clock-out) would just show the old
+          // "Clocked IN" result without recording anything.
+          window.location.assign(new URL(path, window.location.origin).href);
         },
         { preferredCamera: "environment", highlightScanRegion: true, highlightCodeOutline: true, maxScansPerSecond: 8 },
       );
@@ -78,7 +79,7 @@ function ScannerOverlay({ onClose }: { onClose: () => void }) {
       cancelled = true;
       scanner?.destroy();
     };
-  }, [router]);
+  }, []);
 
   return (
     <div role="dialog" aria-modal="true" aria-label="Scan QR code" className="fixed inset-0 z-50 flex flex-col bg-black">

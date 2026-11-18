@@ -11,6 +11,7 @@ import {
   XCircle,
   type Icon,
 } from "@phosphor-icons/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Button, Spinner } from "@/components/ui";
@@ -27,7 +28,7 @@ export default function CheckinView() {
   const router = useRouter();
   const [res, setRes] = useState<ScanResult | null>(null);
   const [error, setError] = useState("");
-  const started = useRef(false);
+  const started = useRef<string | null>(null);
 
   async function run() {
     setError("");
@@ -41,24 +42,26 @@ export default function CheckinView() {
   }
 
   useEffect(() => {
-    if (started.current) return; // run once, even in React dev double-mount
-    started.current = true;
+    // Run once per scan link (the ?t= code + when it was opened), even in React dev double-mount.
+    const key = window.location.href + "|" + performance.timeOrigin;
+    if (started.current === key) return;
+    started.current = key;
     void run();
   }, []);
 
   const done = (
     <div className="mt-2 flex flex-col gap-3">
-      <Button onClick={() => router.replace(res?.result === "admin" ? "/admin" : "/me")}>Done</Button>
+      <Button onClick={() => window.location.replace(res?.result === "admin" ? "/admin" : "/me")}>Done</Button>
     </div>
   );
 
   return (
     <div className="flex flex-1 flex-col">
       <header className="bg-ink">
-        <div className="mx-auto flex w-full max-w-md items-center gap-3 px-5 py-3">
+        <Link href="/" aria-label="Home" className="mx-auto flex w-full max-w-md items-center gap-3 px-5 py-3">
           <Logo size={40} />
           <span className="text-lg font-bold text-white">{THEME.gymName}</span>
-        </div>
+        </Link>
       </header>
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-5 px-5 py-8">
         {error ? (
@@ -127,7 +130,11 @@ function ResultFor({ res }: { res: ScanResult }) {
           icon={ClockCounterClockwise}
           title={res.state === "in" ? "Already clocked in" : "Already clocked out"}
           big={formatTime((res.state === "in" ? res.clock_in : res.clock_out) ?? new Date().toISOString())}
-          lines={["You just scanned. Nothing changed."]}
+          lines={
+            res.state === "in"
+              ? ["You just clocked in.", "Scan again when you leave to clock out."]
+              : ["You just clocked out. See you next time!"]
+          }
         />
       );
     case "blocked":

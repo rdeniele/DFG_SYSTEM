@@ -50,3 +50,22 @@ body {
   border-radius: 0;
   overflow: auto;
 }
+
+/* Phone app bars: top bar (logo + menu) and bottom tab bar.
+   Wrappers with .has-bottom-nav reserve space for them. Tablet/PC: 0. */
+:root {
+  --bottom-nav: 0px;
+  --top-nav: 0px;
+}
+@media (max-width: 767.98px) {
+  .has-bottom-nav {
+    --bottom-nav: calc(64px + env(safe-area-inset-bottom));
+    --top-nav: 60px;
+  }
+}
+@media print {
+  .has-bottom-nav {
+    --bottom-nav: 0px;
+    --top-nav: 0px;
+  }
+}

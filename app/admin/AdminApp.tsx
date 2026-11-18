@@ -12,7 +12,6 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { useMyRole } from "@/lib/use-my-role";
 import { MemberList, type Filter } from "./MemberList";
 import { MemberProfile } from "./MemberProfile";
-import { AdminMenu } from "./AdminMenu";
 import { WalkInSheet } from "./WalkInSheet";
 
 /**
@@ -70,32 +69,29 @@ export default function AdminApp() {
   const selected = members?.find((m) => m.id === selectedId) ?? null;
 
   return (
-    <div className="flex h-dvh flex-col">
-      <header className="flex shrink-0 items-center justify-between gap-3 bg-ink px-4 py-2">
-        <div className="flex min-w-0 items-center gap-2">
+    <div className="flex h-[calc(100dvh-var(--bottom-nav)-var(--top-nav))] flex-col">
+      {/* Tablet/PC top bar. Phones use AdminTopBar + AdminNav from the layout. */}
+      <header className="hidden shrink-0 items-center justify-between gap-3 bg-ink px-4 py-2 md:flex">
+        <Link href="/" aria-label="Home" className="flex min-w-0 items-center gap-2 rounded-xl pr-2 active:bg-white/10">
           <Logo size={42} />
           <span className="hidden text-lg font-bold text-white lg:inline">Front desk</span>
-        </div>
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Phone: QR, Attendance, Walk-in, Menu (Summary/Team/My membership/Log out).
-              Tablet/PC: every link in the bar (labels from lg up) + Log out. */}
+        </Link>
+        <div className="flex items-center gap-2">
           {(
             [
               { href: "/admin/qr", icon: QrCode, label: "QR" },
               { href: "/admin/attendance", icon: UsersThree, label: "Attendance" },
-              { href: "/admin/summary", icon: ChartBar, label: "Summary", wideOnly: true },
-              { href: "/admin/team", icon: ShieldCheck, label: "Team", wideOnly: true },
-              { href: "/me", icon: UserCircle, label: "My membership", wideOnly: true },
+              { href: "/admin/summary", icon: ChartBar, label: "Summary" },
+              { href: "/admin/team", icon: ShieldCheck, label: "Team" },
+              { href: "/me", icon: UserCircle, label: "My membership" },
             ] as const
-          ).map(({ href, icon: IconCmp, label, ...rest }) => (
+          ).map(({ href, icon: IconCmp, label }) => (
             <Link
               key={href}
               href={href}
               aria-label={label}
               title={label}
-              className={`min-h-12 min-w-12 items-center justify-center rounded-xl border-2 border-white/40 px-2.5 text-base font-semibold text-white active:bg-white/10 ${
-                "wideOnly" in rest ? "hidden md:flex" : "flex"
-              }`}
+              className="flex min-h-12 min-w-12 items-center justify-center rounded-xl border-2 border-white/40 px-2.5 text-base font-semibold text-white active:bg-white/10"
             >
               <IconCmp size={22} weight="bold" aria-hidden />
               <span className="ml-1.5 hidden lg:inline">{label}</span>
@@ -108,8 +104,7 @@ export default function AdminApp() {
           >
             <Plus size={22} weight="bold" aria-hidden className="mr-1.5" /> Walk-in
           </button>
-          <AdminMenu />
-          <LogoutButton variant="header" className="hidden min-h-12 md:flex" />
+          <LogoutButton variant="header" className="min-h-12" />
         </div>
       </header>
       {walkInOpen && <WalkInSheet onClose={closeWalkIn} />}
